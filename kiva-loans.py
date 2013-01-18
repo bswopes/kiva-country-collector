@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import json,urllib,sys
+import json, urllib
+from sys import exit
 from country import country_codes
 from optparse import OptionParser
 
@@ -10,27 +11,24 @@ parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://
 
 if options.kiva_id is None:
         parser.print_help()
-        sys.exit(3)
+        exit(3)
 else:
         print "User ID:", options.kiva_id
 
-page = 1
-baseurl = "http://api.kivaws.org/v1/lenders/" + options.kiva_id + "/loans.json?page="
-searchurl = "http://api.kivaws.org/v1/loans/search.json?status=fundraising&country_code="
+page = 1 # Starting page number
+pages = 1 # Starting limit
+lender_url = "http://api.kivaws.org/v1/lenders/" + options.kiva_id + "/loans.json?page="
+search_url = "http://api.kivaws.org/v1/loans/search.json?status=fundraising&country_code="
 my_countries = {}
 not_loaned = country_codes.copy()
-
-url = baseurl + str(page)
-data = urllib.urlopen(url).read()
-d = json.loads(data)
-pages = d["paging"]["pages"]
 
 # Pull all countries we have loaned to.
 
 while page <= pages:
-        url = baseurl + str(page)
-        data = urllib.urlopen(url).read()
-        d = json.loads(data)
+        url = lender_url + str(page)
+        d = json.loads(urllib.urlopen(url).read())
+        pages = d["paging"]["pages"]
+
 
         #print "Working on page %s of %s." % (page, pages)
         for x in d["loans"]:
@@ -43,13 +41,23 @@ while page <= pages:
                         del not_loaned[code]
         page += 1
 
+# Print a list of countries already loaned to... Mostly so user realizes something is happening.
+co_list = "" 
+for code in sorted(my_countries):
+        co_list = co_list + ", " + str(code)
+print "User has previously loaned to:", co_list
+
 
 def find_loans(code):
+        ''' (str) -> bool
+
+        Return True if at least one new country is found.
+
+        '''
         loans_found = False
         #print "Checking country:", country_codes[code]
-        url = searchurl + code
-        data = urllib.urlopen(url).read()
-        d = json.loads(data)
+        url = search_url + code
+        d = json.loads(urllib.urlopen(url).read())
         loans = d["paging"]["total"]
         if loans > 0:
                 print "Found %s loans for country %s" % (loans, country_codes[code])
