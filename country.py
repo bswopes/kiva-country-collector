@@ -2,10 +2,11 @@
 
 import csv
 country_codes = {}
+file = "kiva-country-list.csv"
+#file = 'iso-country-codes.csv'
 
-with open('iso-country-codes.csv') as f:
+with open(file) as f:
         reader = csv.reader(f)
-        reader.next()
         for row in reader:
                 k, v = row
                 country_codes[k] = v
