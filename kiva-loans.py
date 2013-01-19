@@ -5,6 +5,8 @@ from sys import exit
 from country import country_codes
 from optparse import OptionParser
 
+app_id = "com.github.bswopes.kiva-country-collector"
+
 parser = OptionParser()
 parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://www.kiva.org/myLenderId")
 parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
@@ -47,7 +49,7 @@ def write_lender_csv(lender,my_countries):
         file = lender + ".csv"
         try: 
                 with open(file,'wb') as f:
-                        writer = csv.writer(f)
+                        writer = csv.writer(f,quoting=csv.QUOTE_ALL)
                         for key,value in my_countries.items():
                                 writer.writerow([key, value])
                         f.close()
@@ -68,7 +70,7 @@ def fetch_old_loans(lender):
         '''
         page = 1 # Starting page number
         pages = 1 # Starting limit
-        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?page="
+        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&page="
 
         my_countries = {}
         not_loaned = country_codes.copy()
@@ -98,7 +100,7 @@ def find_loans(code):
         Return True if at least one new country is found.
 
         '''
-        search_url = "http://api.kivaws.org/v1/loans/search.json?status=fundraising&country_code="
+        search_url = "http://api.kivaws.org/v1/loans/search.json?app_id=" + app_id + "&status=fundraising&country_code="
         loans_found = False
         url = search_url + code
         d = json.loads(urllib.urlopen(url).read())
@@ -149,7 +151,7 @@ if loans_found < options.count:
                 if new_loans_found:
                         loans_found += 1
                         print "Country %s, previous loan count %s." % (country_codes[code],count)
-                        print "Visit Kiva at: http://www.kiva.org/lend#/?countries[]=%s" % code
+                        print "Visit Kiva at: http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,code)
                 if loans_found == options.count:
                         print "Reached specified number of countries."
                         exit(0)
