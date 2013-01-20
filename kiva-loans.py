@@ -33,14 +33,20 @@ def read_lender_csv(lender):
         not_loaned = country_codes.copy()
         try: 
                 with open(file,'rb') as f:
+                        loan_count = 0
                         reader = csv.reader(f)
                         for row in reader:
                                 key, value = row
+                                loan_count += int(value)
                                 my_countries[str(key)] = int(value)
                                 if key in not_loaned:
                                         del not_loaned[key]
                         if options.verbose:
                                 print "Read data from file: %s" % file
+
+                        if check_lender_count(lender) != loan_count:
+                                print "Lender has made new loans. Updating..."
+                                my_countries, not_loaned = fetch_old_loans(lender)
                         return my_countries, not_loaned
         except IOError:
                 return False, False
@@ -63,6 +69,10 @@ def write_lender_csv(lender,my_countries):
                 print "Unable to write to lender file: %s.csv" % lender
                 return False
         
+def check_lender_count(lender):
+        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id
+        d = json.loads(urllib.urlopen(lender_url).read())
+        return int(d["paging"]["total"])
 
 def fetch_old_loans(lender):
         ''' (str) -> dict,dict
