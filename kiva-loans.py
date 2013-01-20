@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import json, urllib, csv
+from webbrowser import open_new_tab
 from sys import exit
 from country import country_codes
 from optparse import OptionParser
@@ -16,10 +17,11 @@ parser.add_option("-v","--verbose",dest="verbose",action="store_true",help="Extr
 (options, args) = parser.parse_args()
 
 if options.kiva_id is None:
-        parser.print_help()
-        exit(3)
+        #parser.print_help()
+        lender = raw_input("Ender your Kiva ID (http://www.kiva.org/myLenderId): ")
 else:
-        print "User ID:", options.kiva_id
+        lender = options.kiva_id
+        print "User ID:", lender
 
 def read_lender_csv(lender):
         ''' (str) -> dict, dict
@@ -119,6 +121,11 @@ def display_link(loans_found):
         for code in loans_found:
                 co_list = co_list + "," + str(code)
         print "Visit Kiva at: http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list.lstrip(','))
+        try:
+                open_new_tab("http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list.lstrip(',')))
+        except:
+                if options.verbose:
+                        print "Error opening browser."
         exit(0)
 
 #
@@ -126,10 +133,10 @@ def display_link(loans_found):
 #
 
 if options.update is False:
-        my_countries, not_loaned = read_lender_csv(options.kiva_id)
+        my_countries, not_loaned = read_lender_csv(lender)
 
 if options.update is True or my_countries is False:
-        my_countries, not_loaned = fetch_old_loans(options.kiva_id)
+        my_countries, not_loaned = fetch_old_loans(lender)
 
 if options.verbose:
         # Print a list of countries already loaned to... Mostly so user realizes something is happening.
