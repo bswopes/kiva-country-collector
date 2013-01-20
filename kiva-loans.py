@@ -10,6 +10,7 @@ app_id = "com.github.bswopes.kiva-country-collector"
 parser = OptionParser()
 parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://www.kiva.org/myLenderId")
 parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
+parser.add_option("-n","--new-only",dest="newonly",action="store_true",help="Only find new countries.",default=False)
 parser.add_option("-u","--update",dest="update",action="store_true",help="Ignore / Update existing user data (lender.csv)",default=False)
 parser.add_option("-v","--verbose",dest="verbose",action="store_true",help="Extra output",default=False)
 (options, args) = parser.parse_args()
@@ -36,7 +37,8 @@ def read_lender_csv(lender):
                                 my_countries[str(key)] = int(value)
                                 if key in not_loaned:
                                         del not_loaned[key]
-                        print "Read data from file: %s" % file
+                        if options.verbose:
+                                print "Read data from file: %s" % file
                         return my_countries, not_loaned
         except IOError:
                 return False, False
@@ -106,7 +108,8 @@ def find_loans(code):
         d = json.loads(urllib.urlopen(url).read())
         loans = d["paging"]["total"]
         if loans > 0:
-                print "Found %s loans for country %s" % (loans, country_codes[code])
+                if options.verbose:
+                        print "Found %s loans for country %s" % (loans, country_codes[code])
                 loans_found = True
         return loans_found
 
@@ -120,11 +123,12 @@ if options.update is False:
 if options.update is True or my_countries is False:
         my_countries, not_loaned = fetch_old_loans(options.kiva_id)
 
-# Print a list of countries already loaned to... Mostly so user realizes something is happening.
-co_list = "" 
-for code in sorted(my_countries):
-        co_list = co_list + ", " + str(code)
-print "User has previously loaned to:", co_list.lstrip(' ,')
+if options.verbose:
+        # Print a list of countries already loaned to... Mostly so user realizes something is happening.
+        co_list = "" 
+        for code in sorted(my_countries):
+                co_list = co_list + ", " + str(code)
+        print "User has previously loaned to:", co_list.lstrip(' ,')
 
 #
 # Check for loans in countries we haven't hit yet.
@@ -140,6 +144,10 @@ for code in not_loaned:
         if loans_found == options.count:
                 print "Reached specified number of countries."
                 exit(0)
+
+if options.newonly:
+        print "No new countries found."
+        exit(0)
 
 if loans_found < options.count:
         print "No new countries found. Looking for less used countries."
