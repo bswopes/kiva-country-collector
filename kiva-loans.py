@@ -113,6 +113,14 @@ def find_loans(code):
                 loans_found = True
         return loans_found
 
+
+def display_link(loans_found):
+        co_list = "" 
+        for code in loans_found:
+                co_list = co_list + "," + str(code)
+        print "Visit Kiva at: http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list.lstrip(','))
+        exit(0)
+
 #
 # Pull in data for lender's previous loans.
 #
@@ -134,22 +142,25 @@ if options.verbose:
 # Check for loans in countries we haven't hit yet.
 #
 
-loans_found = 0
+loans_found = []
 for code in not_loaned:
         if options.verbose:
                 print "Checking new country %s." % country_codes[code]
         new_loans_found = find_loans(code)
         if new_loans_found:
-                loans_found += 1
-        if loans_found == options.count:
-                print "Reached specified number of countries."
+                print "NEW COUNTRY! Found loans for %s" % country_codes[code]
+                loans_found.append(code)
+        if len(loans_found) == options.count:
+                if options.verbose:
+                        print "Reached specified number of countries."
+                display_link(loans_found)
                 exit(0)
 
 if options.newonly:
         print "No new countries found."
         exit(0)
 
-if loans_found < options.count:
+if len(loans_found) < options.count:
         print "No new countries found. Looking for less used countries."
 
         for code,count in sorted(my_countries.items(), key=lambda x: x[1]):
@@ -157,9 +168,13 @@ if loans_found < options.count:
                         print "Checking country %s, previous loan count %s." % (country_codes[code],count)
                 new_loans_found = find_loans(code)
                 if new_loans_found:
-                        loans_found += 1
+                        loans_found.append(code)
                         print "Country %s, previous loan count %s." % (country_codes[code],count)
-                        print "Visit Kiva at: http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,code)
-                if loans_found == options.count:
-                        print "Reached specified number of countries."
-                        exit(0)
+                if len(loans_found) == options.count:
+                        if options.verbose:
+                                print "Reached specified number of countries."
+                        display_link(loans_found)
+
+if options.verbose:
+        print "Not sure how we ended up here..."
+exit(3)
