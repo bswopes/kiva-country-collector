@@ -21,7 +21,10 @@ if options.kiva_id is None:
         lender = raw_input("Ender your Kiva ID (http://www.kiva.org/myLenderId): ")
 else:
         lender = options.kiva_id
-        print "User ID:", lender
+
+if lender.isalnum() is False or len(lender) < 3 or len(lender) > 24:
+        print "Lender ID is invalid."
+        exit(1)
 
 def read_lender_csv(lender):
         ''' (str) -> dict, dict
@@ -71,7 +74,11 @@ def write_lender_csv(lender,my_countries):
         
 def check_lender_count(lender):
         lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id
-        d = json.loads(urllib.urlopen(lender_url).read())
+        try:
+                d = json.loads(urllib.urlopen(lender_url).read())
+        except:
+                print "Error loading lender page. Confirm your ID at http://www.kiva.org/myLenderId"
+                exit(1)
         return int(d["paging"]["total"])
 
 def fetch_old_loans(lender):
@@ -90,7 +97,11 @@ def fetch_old_loans(lender):
         not_loaned = country_codes.copy()
         while page <= pages:
                 url = lender_url + str(page)
-                d = json.loads(urllib.urlopen(url).read())
+                try:
+                        d = json.loads(urllib.urlopen(url).read())
+                except:
+                        print "Error loading lender page. Confirm your ID at http://www.kiva.org/myLenderId"
+                        exit(1)
                 pages = d["paging"]["pages"]
 
 
@@ -117,7 +128,10 @@ def find_loans(code):
         search_url = "http://api.kivaws.org/v1/loans/search.json?app_id=" + app_id + "&status=fundraising&country_code="
         loans_found = False
         url = search_url + code
-        d = json.loads(urllib.urlopen(url).read())
+        try:   
+                d = json.loads(urllib.urlopen(url).read())
+        except:
+                print "Error loading loans for %s. Try again later." % code
         loans = d["paging"]["total"]
         if loans > 0:
                 if options.verbose:
