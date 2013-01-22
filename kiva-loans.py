@@ -3,12 +3,12 @@
 import json, urllib, csv
 from webbrowser import open_new_tab
 from sys import exit
-from country import country_codes
 from optparse import OptionParser
 
 app_id = "com.github.bswopes.kiva-country-collector"
 
 parser = OptionParser()
+parser.add_option("-a","--all-countries",dest="all",action="store_true",help="Check all possible countries, not just known countries Kiva loans to. Much slower.",default=False)
 parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://www.kiva.org/myLenderId")
 parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
 parser.add_option("-n","--new-only",dest="newonly",action="store_true",help="Only find new countries.",default=False)
@@ -25,6 +25,22 @@ else:
 if lender.isalnum() is False or len(lender) < 3 or len(lender) > 24:
         print "Lender ID is invalid."
         exit(1)
+
+def read_countries(all):
+        country_codes = {}
+        if all:
+                if options.verbose:
+                        print "Checking all possible countries."
+                file = 'iso-country-codes.csv'
+        else:
+                file = "kiva-country-list.csv"
+
+        with open(file) as f:
+                reader = csv.reader(f)
+                for row in reader:
+                        k, v = row
+                        country_codes[k] = v
+        return country_codes
 
 def read_lender_csv(lender):
         ''' (str) -> dict, dict
@@ -155,6 +171,7 @@ def display_link(loans_found):
 #
 # Pull in data for lender's previous loans.
 #
+country_codes = read_countries(options.all)
 
 if options.update is False:
         my_countries, not_loaned = read_lender_csv(lender)
