@@ -9,6 +9,7 @@ app_id = "com.github.bswopes.kiva-country-collector"
 
 parser = OptionParser()
 parser.add_option("-a","--all-countries",dest="all",action="store_true",help="Check all possible countries, not just known countries Kiva loans to. Much slower.",default=False)
+parser.add_option("-d","--display-user",dest="display",action="store_true",help="Display user information only. Don't check for loans.",default=False)
 parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://www.kiva.org/myLenderId")
 parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
 parser.add_option("-n","--new-only",dest="newonly",action="store_true",help="Only find new countries.",default=False)
@@ -78,7 +79,7 @@ def write_lender_csv(lender,my_countries):
         file = lender + ".csv"
         try: 
                 with open(file,'wb') as f:
-                        writer = csv.writer(f,quoting=csv.QUOTE_ALL)
+                        writer = csv.writer(f,quoting=csv.QUOTE_NONNUMERIC)
                         for key,value in my_countries.items():
                                 writer.writerow([key, value])
                         f.close()
@@ -185,6 +186,9 @@ if options.verbose:
         for code in sorted(my_countries):
                 co_list = co_list + ", " + str(code)
         print "User has previously loaned to:", co_list.lstrip(' ,')
+
+if options.display:
+        exit(0)
 
 #
 # Check for loans in countries we haven't hit yet.
