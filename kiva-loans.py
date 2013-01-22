@@ -32,7 +32,7 @@ def read_countries(all):
         if all:
                 if options.verbose:
                         print "Checking all possible countries."
-                file = 'iso-country-codes.csv'
+                file = 'kiva-country-iso.csv'
         else:
                 file = "kiva-country-list.csv"
 
