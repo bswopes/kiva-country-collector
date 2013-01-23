@@ -138,6 +138,10 @@ def fetch_old_loans(lender):
         write_lender_csv(lender,my_countries)
         return my_countries, not_loaned
 
+def check_all_new(new_countries):
+        return False
+        
+
 def find_loans(code):
         ''' (str) -> bool
 
@@ -148,12 +152,14 @@ def find_loans(code):
         loans_found = False
         url = search_url + code
         try:   
+                if options.verbose:
+                        print "Checking url: %s" % url
                 d = json.loads(urllib.urlopen(url).read())
         except:
                 print "Error loading loans for %s. Try again later." % code
         loans = d["paging"]["total"]
         if loans > 0:
-                if options.verbose:
+                if options.verbose and len(code) < 3:
                         print "Found %s loans for country %s" % (loans, country_codes[code])
                 loans_found = True
         return loans_found
@@ -182,12 +188,18 @@ if options.update is False:
 if options.update is True or my_countries is False:
         my_countries, not_loaned = fetch_old_loans(lender)
 
-if options.verbose:
+
+new_list = ""
+for code in sorted(not_loaned):
+        new_list = new_list + "," + str(code)
+
+if options.verbose or options.display:
         # Print a list of countries already loaned to... Mostly so user realizes something is happening.
-        co_list = "" 
+        old_list = "" 
         for code in sorted(my_countries):
-                co_list = co_list + ", " + str(code)
-        print "User has previously loaned to:", co_list.lstrip(' ,')
+                old_list = old_list + ", " + str(code)
+        print "User has previously loaned to:", old_list.lstrip(' ,')
+        print "User has not loaned to:", new_list.lstrip(',')
 
 if options.display:
         exit(0)
@@ -197,18 +209,20 @@ if options.display:
 #
 
 loans_found = []
-for code in not_loaned:
-        if options.verbose:
-                print "Checking new country %s." % country_codes[code]
-        new_loans_found = find_loans(code)
-        if new_loans_found:
-                print "NEW COUNTRY! Found loans for %s" % country_codes[code]
-                loans_found.append(code)
-        if len(loans_found) == options.count:
+
+if find_loans(new_list.lstrip(' ,')):
+        for code in not_loaned:
                 if options.verbose:
-                        print "Reached specified number of countries."
-                display_link(loans_found)
-                exit(0)
+                        print "Checking new country %s." % country_codes[code]
+                new_loans_found = find_loans(code)
+                if new_loans_found:
+                        print "NEW COUNTRY! Found loans for %s" % country_codes[code]
+                        loans_found.append(code)
+                if len(loans_found) == options.count:
+                        if options.verbose:
+                                print "Reached specified number of countries."
+                        display_link(loans_found)
+                        exit(0)
 
 if options.newonly:
         print "No new countries found."
