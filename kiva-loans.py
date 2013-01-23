@@ -12,6 +12,7 @@ app_id = "com.github.bswopes.kiva-country-collector"
 parser = OptionParser()
 parser.add_option("-a","--all-countries",dest="all",action="store_true",help="Check all possible countries, not just known countries Kiva loans to. Much slower.",default=False)
 parser.add_option("-d","--display-user",dest="display",action="store_true",help="Display user information only. Don't check for loans.",default=False)
+parser.add_option("-f","--find-all",dest="findall",action="store_true",help="Returns all new countries found, not just the number limited by count (-c).",default=False)
 parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://www.kiva.org/myLenderId")
 parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
 parser.add_option("-n","--new-only",dest="newonly",action="store_true",help="Only find new countries.",default=False)
@@ -138,9 +139,6 @@ def fetch_old_loans(lender):
         write_lender_csv(lender,my_countries)
         return my_countries, not_loaned
 
-def check_all_new(new_countries):
-        return False
-        
 
 def find_loans(code):
         ''' (str) -> bool
@@ -166,12 +164,17 @@ def find_loans(code):
 
 
 def display_link(loans_found):
-        co_list = "" 
-        for code in loans_found:
-                co_list = co_list + "," + str(code)
-        print "Visit Kiva at: http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list.lstrip(','))
+        if isinstance(loans_found,list):
+                co_list = "" 
+                for code in loans_found:
+                        co_list = co_list + "," + str(code)
+                co_list = co_list.lstrip(',')
+        else:
+                co_list = loans_found
+
+        print "Visit Kiva at: http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list)
         try:
-                open_new_tab("http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list.lstrip(',')))
+                open_new_tab("http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list))
         except:
                 if options.verbose:
                         print "Error opening browser."
@@ -192,14 +195,16 @@ if options.update is True or my_countries is False:
 new_list = ""
 for code in sorted(not_loaned):
         new_list = new_list + "," + str(code)
+new_list = new_list.lstrip(',')
 
 if options.verbose or options.display:
         # Print a list of countries already loaned to... Mostly so user realizes something is happening.
         old_list = "" 
         for code in sorted(my_countries):
                 old_list = old_list + ", " + str(code)
-        print "User has previously loaned to:", old_list.lstrip(' ,')
-        print "User has not loaned to:", new_list.lstrip(',')
+        old_list = old_list.lstrip(' ,')
+        print "User has previously loaned to:", old_list
+        print "User has not loaned to:", new_list
 
 if options.display:
         exit(0)
@@ -210,7 +215,9 @@ if options.display:
 
 loans_found = []
 
-if find_loans(new_list.lstrip(' ,')):
+if find_loans(new_list):
+        if options.findall:
+                display_link(new_list)
         for code in not_loaned:
                 if options.verbose:
                         print "Checking new country %s." % country_codes[code]
