@@ -1,9 +1,11 @@
 #!/usr/bin/python
 
-import json, urllib, csv
-from webbrowser import open_new_tab
+import json 
+import urllib 
+import csv
 from sys import exit
 from optparse import OptionParser
+from webbrowser import open_new_tab
 
 app_id = "com.github.bswopes.kiva-country-collector"
 
