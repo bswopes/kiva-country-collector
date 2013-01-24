@@ -3,6 +3,7 @@
 import json 
 import urllib 
 import csv
+from os import mkdir
 from sys import exit
 from optparse import OptionParser
 from webbrowser import open_new_tab
@@ -16,6 +17,7 @@ parser.add_option("-f","--find-all",dest="findall",action="store_true",help="Ret
 parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://www.kiva.org/myLenderId")
 parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
 parser.add_option("-n","--new-only",dest="newonly",action="store_true",help="Only find new countries.",default=False)
+parser.add_option("-p","--private",dest="private",action="store_true",help="Do not write cache file!",default=False)
 parser.add_option("-u","--update",dest="update",action="store_true",help="Ignore / Update existing user data (lender.csv)",default=False)
 parser.add_option("-v","--verbose",dest="verbose",action="store_true",help="Extra output",default=False)
 (options, args) = parser.parse_args()
@@ -51,7 +53,7 @@ def read_lender_csv(lender):
 
         Returns list of country codes lent to and count. Returns False if file does not exist.
         '''
-        file = lender + ".csv"
+        file = "lenders/" + lender + ".csv"
         my_countries = {}
         not_loaned = country_codes.copy()
         try: 
@@ -65,7 +67,7 @@ def read_lender_csv(lender):
                                 if key in not_loaned:
                                         del not_loaned[key]
                         if options.verbose:
-                                print "Read data from file: %s" % file
+                                print "Loading cached data from file: %s" % file
 
                         if check_lender_count(lender) != loan_count:
                                 print "Lender has made new loans. Updating..."
@@ -79,14 +81,21 @@ def write_lender_csv(lender,my_countries):
 
         Writes country code and count to lender.csv. Returns success/failure.
         '''
-        file = lender + ".csv"
+        file = "lenders/" + lender + ".csv"
+        try:
+                mkdir("lenders",0700)
+        except IOError:
+                if options.verbose:
+                        print "Directory already exists."
+
+                
         try: 
                 with open(file,'wb') as f:
                         writer = csv.writer(f,quoting=csv.QUOTE_NONNUMERIC)
                         for key,value in my_countries.items():
                                 writer.writerow([key, value])
                         f.close()
-                        print "Wrote lender file: %s" % file
+                        print "Cached lender data to file: %s" % file
                         return True
         except IOError:
                 print "Unable to write to lender file: %s.csv" % lender
@@ -136,7 +145,8 @@ def fetch_old_loans(lender):
                                 del not_loaned[code]
                 page += 1
 
-        write_lender_csv(lender,my_countries)
+	if not options.private:
+        	write_lender_csv(lender,my_countries)
         return my_countries, not_loaned
 
 
