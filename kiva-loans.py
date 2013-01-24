@@ -37,9 +37,9 @@ def read_countries(all):
         if all:
                 if options.verbose:
                         print "Checking all possible countries."
-                file = 'kiva-country-iso.csv'
+                file = 'data/kiva-country-iso.csv'
         else:
-                file = "kiva-country-list.csv"
+                file = "data/kiva-country-list.csv"
 
         with open(file) as f:
                 reader = csv.reader(f)
