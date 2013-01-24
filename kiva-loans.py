@@ -7,7 +7,7 @@ from sys import exit
 from optparse import OptionParser
 from webbrowser import open_new_tab
 
-app_id = "com.github.bswopes.kiva-country-collector"
+app_id = "com.bhodisoft.kcc"
 
 parser = OptionParser()
 parser.add_option("-a","--all-countries",dest="all",action="store_true",help="Check all possible countries, not just known countries Kiva loans to. Much slower.",default=False)
