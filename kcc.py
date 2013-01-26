@@ -32,6 +32,8 @@ if lender.isalnum() is False or len(lender) < 3 or len(lender) > 24:
         print "Lender ID is invalid."
         exit(1)
 
+lender = lender.lower()
+
 def read_countries(all):
         country_codes = {}
         if all:
