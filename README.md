@@ -7,15 +7,8 @@ If no new countries are found, check for loans starting with countries you have 
 
 Writes to csv file with lender country code / count, to reduce API calls. Use -u (--update) to force an update.
 
-$ ./kiva-loans.py -i bswopes -c 2  
-User ID: bswopes  
-Read data from file: bswopes.csv  
-User has previously loaned to: AF, AL, AM, AZ, BF, BI, BJ, BO, CD, CG, CL, CM, CO, CR, DO, EC, GE, GH, GT, HN, HT, ID, IL, IN, IQ, JO, KE, KG, KH, LB, LR, ML, MN, MX, MZ, NI, PE, PH, PK, PS, PY, QS, RW, SL, SN, SV, TG, TJ, TL, TZ, UA, UG, US, VN, WS, XK, YE, ZA, ZM, ZW  
+$ ./kcc.py -i bswopes -c2  
 No new countries found. Looking for less used countries.  
-Found 2 loans for country KOSOVO  
-Country KOSOVO, previous loan count 3.  
-Visit Kiva at: http://www.kiva.org/lend#/?countries[]=XK  
-Found 42 loans for country BOLIVIA, PLURINATIONAL STATE OF  
-Country BOLIVIA, PLURINATIONAL STATE OF, previous loan count 3.  
-Visit Kiva at: http://www.kiva.org/lend#/?countries[]=BO  
-Reached specified number of countries.  
+Country India, previous loan count 1.  
+Country Cameroon, previous loan count 2.  
+Visit Kiva at: http://www.kiva.org/lend#/?app_id=com.bhodisoft.kcc&countries[]=IN,CM  
