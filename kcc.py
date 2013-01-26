@@ -3,7 +3,7 @@
 import json 
 import urllib 
 import csv
-from os import mkdir
+from os import mkdir, path
 from sys import exit
 from optparse import OptionParser
 from webbrowser import open_new_tab
@@ -84,11 +84,12 @@ def write_lender_csv(lender,my_countries):
         Writes country code and count to lender.csv. Returns success/failure.
         '''
         file = "lenders/" + lender + ".csv"
-        try:
-                mkdir("lenders",0700)
-        except IOError:
-                if options.verbose:
-                        print "Directory already exists."
+        if not path.exists("lenders"):
+                try:
+                        mkdir("lenders",0700)
+                except IOError:
+                        if options.verbose:
+                                print "Directory already exists."
 
                 
         try: 
