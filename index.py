@@ -16,6 +16,7 @@ print "Content-Type: text/html;charset=utf-8"
 form = cgi.FieldStorage()
 
 bool_args = ""
+set_cookie = True
 arg_list = form.getlist("arguments")
 
 if "verbose" in arg_list:
@@ -26,6 +27,7 @@ if "newonly" in arg_list:
 	bool_args = bool_args + "n"
 if "private" in arg_list:
 	bool_args = bool_args + "p"
+        set_cookie = False
 
 if len(bool_args) > 0:
 	bool_args = "-" + bool_args
@@ -44,7 +46,8 @@ if lender.isalnum() is False or len(lender) < 3 or len(lender) > 24:
         print "Lender ID is invalid."
 	exit(0)
 else:
-        print "Set-Cookie: lender=" + lender
+        if set_cookie:
+                print "Set-Cookie: lender=" + lender
         print
 	print "<p>Hello %s!</p>" % lender
 
