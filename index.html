@@ -1,0 +1,65 @@
+<html>
+<head>
+<script type="text/javascript">
+if(top === self){
+	top.location.href = 'http://www.bhodisoft.com/kiva-country-collector/';
+}
+function getCookie(c_name)
+{
+var i,x,y,ARRcookies=document.cookie.split(";");
+for (i=0;i<ARRcookies.length;i++)
+  {
+  x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+  y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+  x=x.replace(/^\s+|\s+$/g,"");
+  if (x==c_name)
+    {
+    return unescape(y);
+    }
+  }
+}
+</script>
+<title>Kiva Country Collector - BhodiSoft - Blake Swopes</title>
+<body>
+<p>Source code available on <a href="https://github.com/bswopes/kiva-country-collector">GitHub</a>.</p>
+<form name="kccform" method="post" action="index.py">
+<table width="450px">
+<tr>
+ <td valign="top">
+  <label for="lender">Lender ID<label> <sup><a href="https://www.kiva.org/myLenderId" target="_blank">*?</a></sup>
+ </td>
+ <td valign="top">
+  <input  type="text" name="lender" maxlength="24" size="30" value="">
+   <script type="text/javascript">
+    if(lender = getCookie("lender")) document.kccform.lender.value = lender;
+   </script>
+ </td>
+</tr>
+<tr>
+ <td valign="top">
+  <label for="count">Number of Countries<label>
+ </td>
+ <td valign="top">
+  <input  type="number" name="count" min="1" value="1">
+ </td>
+</tr>
+<tr>
+ <td>
+  Options:
+ </td>
+ <td>
+   <input type="checkbox" name="arguments" value="findall" /> Find All - Don't limit to COUNT.<br />
+   <input type="checkbox" name="arguments" value="newonly" /> New Only - No old countries.<br />
+   <input type="checkbox" name="arguments" value="private" /> Privacy Mode! - Don't cache data to disk.<br />
+   <input type="checkbox" name="arguments" value="verbose" /> Verbose - See what its doing.<br />
+ </td>
+</tr>
+<tr>
+ <td colspan="2" style="text-align:center">
+  <input type="submit" value="Submit">
+ </td>
+</tr>
+</table>
+</form>
+</body>
+</html>
