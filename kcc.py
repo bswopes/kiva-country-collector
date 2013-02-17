@@ -265,4 +265,6 @@ if len(loans_found) < options.count:
 
 if options.verbose:
         print "Not sure how we ended up here..."
+if len(loans_found) > 0:
+        display_link(loans_found)
 exit(3)
