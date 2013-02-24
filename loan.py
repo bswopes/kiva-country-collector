@@ -2,6 +2,7 @@
 
 import json 
 import urllib
+from os import environ
 from sys import exit
 from country import country_codes
 
@@ -39,8 +40,12 @@ def display_link(loans_found):
         co_list = co_list.lstrip(',')
     else:
         co_list = loans_found
-    
-    print "Visit Kiva at: http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list)
+
+    link = "http://www.kiva.org/lend#/?app_id=" + app_id + "&countries[]=" + co_list
+    if 'GATEWAY_INTERFACE' not in environ:
+        print "Visit Kiva at: %s" % link
+    else:
+        print 'Visit Kiva <a href="%s" target=_top>HERE</a>' % link
     exit(0)
 
 def find_new_loans(not_loaned,loan_count=1,verbose=False):

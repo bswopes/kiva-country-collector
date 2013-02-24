@@ -102,9 +102,9 @@ if not loan_count.isdigit() and int(loan_count) <= 0:
 
 p = sub.Popen(['./kcc.py',bool_args,'-i',kiva_id,'-c',loan_count],stdout=sub.PIPE)
 output = urllib.unquote(p.stdout.read())
-output = output.split('Visit Kiva at: ')
+#output = output.split('Visit Kiva at: ')
 
-print '<pre>%s</pre>' % output[0]
+print '<pre>%s</pre>' % output
 
-if len(output) == 2:
-	print 'Visit Kiva <a href="%s" target=_top>HERE</a>' % output[1]
+#if len(output) == 2:
+#	print 'Visit Kiva <a href="%s" target=_top>HERE</a>' % output[1]

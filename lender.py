@@ -12,7 +12,7 @@ from country import country_codes
 app_id = "com.bhodisoft.kcc"
 
 
-def check_lender_id(lender,quiet=True):
+def check_lender_id(lender):
     notallowed = "[^" + string.ascii_lowercase + string.digits + "]+"
     lender = re.sub(notallowed,'', lender.lower())
     
@@ -20,7 +20,7 @@ def check_lender_id(lender,quiet=True):
         print "Lender ID is invalid."
         exit(1)
     else:
-        if not quiet:
+        if 'GATEWAY_INTERFACE' not in environ:
             print "Lender ID %s" % lender
     return lender
 
