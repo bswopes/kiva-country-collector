@@ -12,7 +12,7 @@ from country import country_codes
 app_id = "com.bhodisoft.kcc"
 
 
-def check_lender_id(lender):
+def check_lender_id(lender,quiet=True):
     notallowed = "[^" + string.ascii_lowercase + string.digits + "]+"
     lender = re.sub(notallowed,'', lender.lower())
     
@@ -20,7 +20,8 @@ def check_lender_id(lender):
         print "Lender ID is invalid."
         exit(1)
     else:
-        print "Lender ID %s" % lender
+        if not quiet:
+            print "Lender ID %s" % lender
 
 
 def read_lender_csv(lender,private=False,verbose=False,display=False):
