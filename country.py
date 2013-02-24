@@ -1,16 +1,18 @@
 #!/usr/bin/python
 
-import string, time
-import json, urllib, csv
-import sys
+import string
+import time
+import json
+import urllib
+import csv
 
-app_id = "com.bhodisoft.kcc"
+app_id = 'com.bhodisoft.kcc'
+country_list_filename = 'data/kiva-country-list.csv'
 
 def read_countries():
     country_codes = {}
-    file = "data/kiva-country-list.csv"
     
-    with open(file) as f:
+    with open(country_list_filename) as f:
         reader = csv.reader(f)
         for row in reader:
             k, v = row
@@ -48,7 +50,7 @@ def check_kiva_countries():
                 write_country_file = True
 
     if write_country_file:
-        with open('data/kiva-country-list.csv','wb') as f:
+        with open(country_list_filename,'wb') as f:
             writer = csv.writer(f,quoting=csv.QUOTE_ALL)
             for key,value in sorted(country_codes.items()):
                 writer.writerow([key, value])
