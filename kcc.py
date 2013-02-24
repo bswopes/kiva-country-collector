@@ -85,19 +85,14 @@ if options.update is True or my_countries is False:
         my_countries, not_loaned = lender.fetch_old_loans(kiva_id,country_codes)
 
 
-new_list = ""
-for code in sorted(not_loaned):
-        new_list = new_list + "," + str(code)
-new_list = new_list.lstrip(',')
+new_list = ','.join(sorted(not_loaned))
+old_list = ','.join(sorted(my_countries))
 
 if options.verbose or options.display:
         # Print a list of countries already loaned to... Mostly so user realizes something is happening.
-        old_list = "" 
-        for code in sorted(my_countries):
-                old_list = old_list + ", " + str(code)
-        old_list = old_list.lstrip(' ,')
         print "User has previously loaned to:", old_list
         print "User has not loaned to:", new_list
+        print "Remaining countries:", len(not_loaned)
 
 if options.display:
         exit(0)
