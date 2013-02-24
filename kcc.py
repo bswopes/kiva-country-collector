@@ -1,15 +1,11 @@
 #!/usr/bin/python
 
-import json 
-import urllib 
-import csv
 from os import environ
 from sys import exit
 from optparse import OptionParser
-import string
-import re
 import country
 import lender
+import loan
 
 app_id = "com.bhodisoft.kcc"
 
@@ -24,50 +20,24 @@ parser.add_option("-u","--update",dest="update",action="store_true",help="Ignore
 parser.add_option("-v","--verbose",dest="verbose",action="store_true",help="Extra output",default=False)
 (options, args) = parser.parse_args()
 
-
-def find_loans(code):
-        ''' (str) -> bool
-
-        Return True if at least one new country is found.
-
-        '''
-        search_url = "http://api.kivaws.org/v1/loans/search.json?app_id=" + app_id + "&status=fundraising&country_code="
-        loans_found = False
-        url = search_url + code
-        try:   
-                if options.verbose:
-                        print "Checking url: %s" % url
-                d = json.loads(urllib.urlopen(url).read())
-        except:
-                print "Error loading loans for %s. Try again later." % code
-        loans = d["paging"]["total"]
-        if loans > 0:
-                if options.verbose and len(code) < 3:
-                        print "Found %s loans for country %s" % (loans, country_codes[code])
-                loans_found = True
-        return loans_found
+verbose = options.verbose
+display = options.display
+findall = options.findall
+newonly = options.newonly
+private = options.private
+update = options.update
+loan_count = options.count
 
 
-def display_link(loans_found):
-        if isinstance(loans_found,list):
-                co_list = "" 
-                for code in loans_found:
-                        co_list = co_list + "," + str(code)
-                co_list = co_list.lstrip(',')
-        else:
-                co_list = loans_found
-
-        print "Visit Kiva at: http://www.kiva.org/lend#/?app_id=%s&countries[]=%s" % (app_id,co_list)
-        exit(0)
 
 #
 # Verify Lender ID has valid format
 #
 if options.kiva_id is None:
-    #parser.print_help()
-    #kiva_id = raw_input("Ender your Kiva ID (http://www.kiva.org/myLenderId): ")
     if 'GATEWAY_INTERFACE' not in environ:
         kiva_id = environ["USER"]
+    else:
+        exit(3)
 else:
     kiva_id = options.kiva_id
 
@@ -76,25 +46,25 @@ lender.check_lender_id(kiva_id)
 #
 # Pull in data for lender's previous loans.
 #
-country_codes = country.check_kiva_countries()
+#country_codes = country.check_kiva_countries()
 
-if options.update is False:
-        my_countries, not_loaned = lender.read_lender_csv(kiva_id,country_codes)
+if update is False:
+        my_countries, not_loaned = lender.read_lender_csv(kiva_id)
 
-if options.update is True or my_countries is False:
-        my_countries, not_loaned = lender.fetch_old_loans(kiva_id,country_codes)
+if update is True or my_countries is False:
+        my_countries, not_loaned = lender.fetch_old_loans(kiva_id)
 
 
 new_list = ','.join(sorted(not_loaned))
 old_list = ','.join(sorted(my_countries))
 
-if options.verbose or options.display:
+if verbose or display:
         # Print a list of countries already loaned to... Mostly so user realizes something is happening.
         print "User has previously loaned to:", old_list
         print "User has not loaned to:", new_list
         print "Remaining countries:", len(not_loaned)
 
-if options.display:
+if display:
         exit(0)
 
 #
@@ -103,43 +73,43 @@ if options.display:
 
 loans_found = []
 
-if find_loans(new_list):
-        if options.findall:
-                display_link(new_list)
+if loan.find_loans(new_list,verbose):
+        if findall:
+                loan.display_link(new_list)
         for code in not_loaned:
-                if options.verbose:
-                        print "Checking new country %s." % country_codes[code]
-                new_loans_found = find_loans(code)
+                if verbose:
+                        print "Checking new country %s." % country.country_codes[code]
+                new_loans_found = loan.find_loans(code,verbose)
                 if new_loans_found:
-                        print "NEW COUNTRY! Found loans for %s" % country_codes[code]
+                        print "NEW COUNTRY! Found loans for %s" % country.country_codes[code]
                         loans_found.append(code)
-                if len(loans_found) == options.count:
-                        if options.verbose:
+                if len(loans_found) == loan_count:
+                        if verbose:
                                 print "Reached specified number of countries."
-                        display_link(loans_found)
+                        loan.display_link(loans_found)
                         exit(0)
 
-if options.newonly:
+if newonly:
         print "No new countries found."
         exit(0)
 
-if len(loans_found) < options.count:
+if len(loans_found) < loan_count:
         print "No new countries found. Looking for less used countries."
 
         for code,count in sorted(my_countries.items(), key=lambda x: x[1]):
-                if options.verbose:
-                        print "Checking country %s, previous loan count %s." % (country_codes[code],count)
-                new_loans_found = find_loans(code)
+                if verbose:
+                        print "Checking country %s, previous loan count %s." % (country.country_codes[code],count)
+                new_loans_found = loan.find_loans(code,verbose)
                 if new_loans_found:
                         loans_found.append(code)
-                        print "Country %s, previous loan count %s." % (country_codes[code],count)
-                if len(loans_found) == options.count:
-                        if options.verbose:
+                        print "Country %s, previous loan count %s." % (country.country_codes[code],count)
+                if len(loans_found) == loan_count:
+                        if verbose:
                                 print "Reached specified number of countries."
-                        display_link(loans_found)
+                        loan.display_link(loans_found)
 
-if options.verbose:
+if verbose:
         print "Not sure how we ended up here..."
 if len(loans_found) > 0:
-        display_link(loans_found)
+        loan.display_link(loans_found)
 exit(3)
