@@ -23,7 +23,7 @@ def check_lender_id(lender):
         print "Lender ID %s" % lender
 
 
-def read_lender_csv(lender):
+def read_lender_csv(lender,private=False,verbose=False,display=False):
         ''' (str) -> dict, dict
 
         Returns list of country codes lent to and count. Returns False if file does not exist.
@@ -46,7 +46,10 @@ def read_lender_csv(lender):
 
                         if check_lender_count(lender) != loan_count:
                                 print "Lender has made new loans. Updating..."
-                                my_countries, not_loaned = fetch_old_loans(lender)
+                                my_countries, not_loaned = fetch_old_loans(lender,private)
+            
+                        if verbose or display:
+                                display_lender_data(my_countries,not_loaned,display)
                         return my_countries, not_loaned
         except IOError:
                 return False, False
@@ -89,7 +92,7 @@ def check_lender_count(lender):
         return int(d["paging"]["total"])
 
 
-def fetch_old_loans(lender):
+def fetch_old_loans(lender,private=False):
         ''' (str) -> dict,dict
 
         Polls Kiva API for lender, gathering loan count per country.
@@ -129,9 +132,17 @@ def fetch_old_loans(lender):
         return my_countries, not_loaned
 
 
+def display_lender_data(my_countries,not_loaned,display=False):
+    print "User has previously loaned to:", ','.join(sorted(my_countries))
+    print "User has not loaned to:", ','.join(sorted(not_loaned))
+    print "Remaining countries:", len(not_loaned)
+
+    if display:
+        exit(0)
+
+
 if __name__ == "__main__":
     lender = environ["USER"]
-    private = False
     check_lender_id(lender)
 
     my_countries, not_loaned = fetch_old_loans(lender)

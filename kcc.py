@@ -3,7 +3,6 @@
 from os import environ
 from sys import exit
 from optparse import OptionParser
-import country
 import lender
 import loan
 
@@ -16,7 +15,6 @@ parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://
 parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
 parser.add_option("-n","--new-only",dest="newonly",action="store_true",help="Only find new countries.",default=False)
 parser.add_option("-p","--private",dest="private",action="store_true",help="Do not write cache file!",default=False)
-parser.add_option("-u","--update",dest="update",action="store_true",help="Ignore / Update existing user data (lender.csv)",default=False)
 parser.add_option("-v","--verbose",dest="verbose",action="store_true",help="Extra output",default=False)
 (options, args) = parser.parse_args()
 
@@ -25,14 +23,14 @@ display = options.display
 findall = options.findall
 newonly = options.newonly
 private = options.private
-update = options.update
 loan_count = options.count
 
 
 
 #
-# Verify Lender ID has valid format
+# Verify Lender ID has valid format and pull lender history.
 #
+
 if options.kiva_id is None:
     if 'GATEWAY_INTERFACE' not in environ:
         kiva_id = environ["USER"]
@@ -42,71 +40,22 @@ else:
     kiva_id = options.kiva_id
 
 lender.check_lender_id(kiva_id)
-
-#
-# Pull in data for lender's previous loans.
-#
-#country_codes = country.check_kiva_countries()
-
-if update is False:
-        my_countries, not_loaned = lender.read_lender_csv(kiva_id)
-
-if update is True or my_countries is False:
-        my_countries, not_loaned = lender.fetch_old_loans(kiva_id)
-
-
-new_list = ','.join(sorted(not_loaned))
-old_list = ','.join(sorted(my_countries))
-
-if verbose or display:
-        # Print a list of countries already loaned to... Mostly so user realizes something is happening.
-        print "User has previously loaned to:", old_list
-        print "User has not loaned to:", new_list
-        print "Remaining countries:", len(not_loaned)
-
-if display:
-        exit(0)
+my_countries, not_loaned = lender.read_lender_csv(kiva_id,private,verbose,display)
 
 #
 # Check for loans in countries we haven't hit yet.
 #
 
-loans_found = []
-
-if loan.find_loans(new_list,verbose):
-        if findall:
-                loan.display_link(new_list)
-        for code in not_loaned:
-                if verbose:
-                        print "Checking new country %s." % country.country_codes[code]
-                new_loans_found = loan.find_loans(code,verbose)
-                if new_loans_found:
-                        print "NEW COUNTRY! Found loans for %s" % country.country_codes[code]
-                        loans_found.append(code)
-                if len(loans_found) == loan_count:
-                        if verbose:
-                                print "Reached specified number of countries."
-                        loan.display_link(loans_found)
-                        exit(0)
+loans_found = loan.find_new_loans(not_loaned,loan_count,verbose)
 
 if newonly:
-        print "No new countries found."
+        print "Searched all new countries."
         exit(0)
 
 if len(loans_found) < loan_count:
-        print "No new countries found. Looking for less used countries."
+    print "Found %s new countries. Looking for less used countries." % len(loans_found)
+    loans_found = loan.find_old_loans(loans_found,my_countries,loan_count,verbose)
 
-        for code,count in sorted(my_countries.items(), key=lambda x: x[1]):
-                if verbose:
-                        print "Checking country %s, previous loan count %s." % (country.country_codes[code],count)
-                new_loans_found = loan.find_loans(code,verbose)
-                if new_loans_found:
-                        loans_found.append(code)
-                        print "Country %s, previous loan count %s." % (country.country_codes[code],count)
-                if len(loans_found) == loan_count:
-                        if verbose:
-                                print "Reached specified number of countries."
-                        loan.display_link(loans_found)
 
 if verbose:
         print "Not sure how we ended up here..."
