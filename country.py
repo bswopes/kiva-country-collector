@@ -57,5 +57,7 @@ def check_kiva_countries():
 
     return country_codes
 
+country_codes = check_kiva_countries()
+
 if __name__ == "__main__":
         print check_kiva_countries()
