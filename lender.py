@@ -7,7 +7,7 @@ from os import mkdir, path, environ
 from sys import exit
 import string
 import re
-import country
+from country import country_codes
 
 app_id = "com.bhodisoft.kcc"
 
@@ -23,7 +23,7 @@ def check_lender_id(lender):
         print "Lender ID %s" % lender
 
 
-def read_lender_csv(lender,country_codes):
+def read_lender_csv(lender):
         ''' (str) -> dict, dict
 
         Returns list of country codes lent to and count. Returns False if file does not exist.
@@ -89,7 +89,7 @@ def check_lender_count(lender):
         return int(d["paging"]["total"])
 
 
-def fetch_old_loans(lender,country_codes):
+def fetch_old_loans(lender):
         ''' (str) -> dict,dict
 
         Polls Kiva API for lender, gathering loan count per country.
@@ -134,8 +134,7 @@ if __name__ == "__main__":
     private = False
     check_lender_id(lender)
 
-    country_codes = country.check_kiva_countries()
-    my_countries, not_loaned = fetch_old_loans(lender,country_codes)
+    my_countries, not_loaned = fetch_old_loans(lender)
     print my_countries
     print not_loaned
 
