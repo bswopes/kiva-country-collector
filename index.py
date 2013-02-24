@@ -13,10 +13,9 @@ import re
 from sys import exit
 from optparse import OptionParser
 import lender
-cgitb.enable()
 
 if 'GATEWAY_INTERFACE' in os.environ:
-
+    cgitb.enable()
     print "Content-Type: text/html;charset=utf-8"
 
     form = cgi.FieldStorage()
@@ -47,7 +46,7 @@ if 'GATEWAY_INTERFACE' in os.environ:
             except:
                     print
 
-    lender.check_lender_id(kiva_id)
+    kiva_id = lender.check_lender_id(kiva_id)
     if set_cookie:
         print 'Set-Cookie: lender=' + kiva_id
     print
@@ -86,12 +85,11 @@ else:
     
     if options.kiva_id is None:
         if 'GATEWAY_INTERFACE' not in os.environ:
-            kiva_id = os.environ["USER"]
+            kiva_id = lender.check_lender_id(os.environ["USER"])
         else:
             exit(3)
     else:
-        kiva_id = options.kiva_id
-    lender.check_lender_id(kiva_id)
+        kiva_id = lender.check_lender_id(options.kiva_id)
 
 #
 # Done deciding if we're CGI or CLI

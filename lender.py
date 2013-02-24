@@ -22,6 +22,7 @@ def check_lender_id(lender,quiet=True):
     else:
         if not quiet:
             print "Lender ID %s" % lender
+    return lender
 
 
 def read_lender_csv(lender,private=False,verbose=False,display=False):
