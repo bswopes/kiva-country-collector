@@ -52,8 +52,6 @@ def find_new_loans(not_loaned,loan_count=1,verbose=False):
     loans_found = []
     new_list = ','.join(sorted(not_loaned))
     if find_loans(new_list,verbose):
-        if findall:
-            display_link(new_list)
         for code in not_loaned:
             if verbose:
                 print "Checking new country %s." % country_codes[code]
@@ -84,7 +82,6 @@ def find_old_loans(loans_found,my_countries,loan_count=1,verbose=False):
 
 if __name__ == "__main__":
     verbose = True
-    findall = False
     loan_list = ["AF","AD","BD","SV","LB"]
     print find_new_loans(loan_list)
 

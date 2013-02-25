@@ -26,8 +26,6 @@ if 'GATEWAY_INTERFACE' in os.environ:
 
     if 'verbose' in arg_list:
         bool_args = bool_args + 'v'
-    if 'findall' in arg_list:
-        bool_args = bool_args + 'f'
     if 'newonly' in arg_list:
         bool_args = bool_args + 'n'
     if 'private' in arg_list:
@@ -56,7 +54,6 @@ if 'GATEWAY_INTERFACE' in os.environ:
 else:
     parser = OptionParser()
     parser.add_option("-d","--display-user",dest="display",action="store_true",help="Display user information only. Don't check for loans.",default=False)
-    parser.add_option("-f","--find-all",dest="findall",action="store_true",help="Returns all new countries found, not just the number limited by count (-c).",default=False)
     parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://www.kiva.org/myLenderId")
     parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
     parser.add_option("-n","--new-only",dest="newonly",action="store_true",help="Only find new countries.",default=False)
@@ -66,7 +63,6 @@ else:
 
     verbose = options.verbose
     display = options.display
-    findall = options.findall
     newonly = options.newonly
     private = options.private
     loan_count = str(options.count)
@@ -74,8 +70,6 @@ else:
     bool_args = ""
     if verbose:
         bool_args = bool_args + 'v'
-    if findall:
-        bool_args = bool_args + 'f'
     if newonly:
         bool_args = bool_args + 'n'
     if private:
