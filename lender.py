@@ -135,11 +135,13 @@ def fetch_old_loans(lender,private=False):
 
 
 def display_lender_data(my_countries,not_loaned,display=False):
-    print "User has previously loaned to:", ','.join(sorted(my_countries))
-    print "User has not loaned to:", ','.join(sorted(not_loaned))
+    print "User has previously loaned to:", ', '.join(sorted(my_countries))
+    print "User has not loaned to:", ', '.join(sorted(not_loaned))
     print "Remaining countries:", len(not_loaned)
 
     if display:
+        if 'GATEWAY_INTERFACE' in environ:
+            print '</p>'
         exit(0)
 
 

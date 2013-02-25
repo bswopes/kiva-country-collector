@@ -51,7 +51,7 @@ if newonly:
         exit(0)
 
 if len(loans_found) < loan_count:
-    print "Found %s new countries. Looking for less used countries." % len(loans_found)
+    print "Found %s loans for new countries. Looking for less used countries." % len(loans_found)
     loans_found = loan.find_old_loans(loans_found,my_countries,loan_count,verbose)
 
 

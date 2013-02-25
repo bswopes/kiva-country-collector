@@ -13,6 +13,7 @@ import re
 from sys import exit
 from optparse import OptionParser
 import lender
+import loan
 
 if 'GATEWAY_INTERFACE' in os.environ:
     cgitb.enable()
@@ -25,12 +26,23 @@ if 'GATEWAY_INTERFACE' in os.environ:
     arg_list = form.getlist("arguments")
 
     if 'verbose' in arg_list:
-        bool_args = bool_args + 'v'
+        verbose = True
+    else:
+        verbose = False
+    if 'display' in arg_list:
+        display = True
+    else:
+        display = False
     if 'newonly' in arg_list:
-        bool_args = bool_args + 'n'
+        newonly = True
+    else:
+        newonly = False
     if 'private' in arg_list:
-        bool_args = bool_args + 'p'
+        private = True
         set_cookie = False
+    else:
+        private = False
+        set_cookie = True
 
     if len(bool_args) > 0:
         bool_args = '-' + bool_args
@@ -50,6 +62,16 @@ if 'GATEWAY_INTERFACE' in os.environ:
     print
 
     loan_count = form.getfirst('count','1')
+    if not loan_count.isdigit() and int(loan_count) <= 0:
+        loan_count = '1'
+
+    loan_count = int(loan_count)
+    print '<p>Hello %s!</p>' % kiva_id
+    print '''<p style="
+        max-width: 100%;
+        white-space: pre-line;
+        ">'''
+
 
 else:
     parser = OptionParser()
@@ -65,17 +87,7 @@ else:
     display = options.display
     newonly = options.newonly
     private = options.private
-    loan_count = str(options.count)
-    
-    bool_args = ""
-    if verbose:
-        bool_args = bool_args + 'v'
-    if newonly:
-        bool_args = bool_args + 'n'
-    if private:
-        bool_args = bool_args + 'p'
-    if len(bool_args) > 0:
-        bool_args = '-' + bool_args
+    loan_count = options.count
     
     if options.kiva_id is None:
         if 'GATEWAY_INTERFACE' not in os.environ:
@@ -85,20 +97,36 @@ else:
     else:
         kiva_id = lender.check_lender_id(options.kiva_id)
 
+
 #
 # Done deciding if we're CGI or CLI
 #
 
-print '<p>Hello %s!</p>' % kiva_id
 
-if not loan_count.isdigit() and int(loan_count) <= 0:
-    loan_count = '1'
 
-p = sub.Popen(['./kcc.py',bool_args,'-i',kiva_id,'-c',loan_count],stdout=sub.PIPE)
-output = urllib.unquote(p.stdout.read())
-#output = output.split('Visit Kiva at: ')
+#p = sub.Popen(['./kcc.py',bool_args,'-i',kiva_id,'-c',loan_count],stdout=sub.PIPE)
+#output = urllib.unquote(p.stdout.read())
+##output = output.split('Visit Kiva at: ')
 
-print '<pre>%s</pre>' % output
 
-#if len(output) == 2:
-#	print 'Visit Kiva <a href="%s" target=_top>HERE</a>' % output[1]
+my_countries, not_loaned = lender.read_lender_csv(kiva_id,private,verbose,display)
+loans_found = loan.find_new_loans(not_loaned,loan_count,verbose)
+
+if newonly:
+    print "Searched all new countries."
+    exit(0)
+
+if len(loans_found) < loan_count:
+    print "Found %s loans for new countries. Looking for less used countries." % len(loans_found)
+    loans_found = loan.find_old_loans(loans_found,my_countries,loan_count,verbose)
+
+if verbose:
+    print "Not sure how we ended up here..."
+if len(loans_found) > 0:
+    loan.display_link(loans_found)
+
+if 'GATEWAY_INTERFACE' in os.environ:
+    print '</p>'
+
+
+exit(3)

@@ -19,11 +19,18 @@ def find_loans(code,verbose=True):
     loans_found = False
     loans = -1
     url = search_url + code
-    try:   
-        if verbose:
+    if verbose:
+        if 'GATEWAY_INTERFACE' not in environ:
             print "Checking url: %s" % url
+        else:
+            if ',' not in code:
+                print 'Checking <a href="%s" target=_top>%s</a>' % (url,country_codes[code])
+            else:
+                print 'Checking <a href="%s" target=_top>%s</a>' % (url,code)
+    try:   
         d = json.loads(urllib.urlopen(url).read())
-        loans = d["paging"]["total"]
+        if d["paging"]["total"] > 0:
+            loans = d["paging"]["total"]
     except:
         print "Error loading loans for %s. Try again later." % code    
     if loans > 0:
@@ -46,6 +53,7 @@ def display_link(loans_found):
         print "Visit Kiva at: %s" % link
     else:
         print 'Visit Kiva <a href="%s" target=_top>HERE</a>' % link
+        print "</p>"
     exit(0)
 
 def find_new_loans(not_loaned,loan_count=1,verbose=False):
@@ -63,13 +71,12 @@ def find_new_loans(not_loaned,loan_count=1,verbose=False):
                 if verbose:
                     print "Reached specified number of countries."
                 display_link(loans_found)
-                exit(0)
     return loans_found
 
 def find_old_loans(loans_found,my_countries,loan_count=1,verbose=False):
     for code,count in sorted(my_countries.items(), key=lambda x: x[1]):
-        if verbose:
-            print "Checking country %s, previous loan count %s." % (country_codes[code],count)
+#        if verbose:
+#            print "Checking country %s, previous loan count %s." % (country_codes[code],count)
         new_loans_found = find_loans(code,verbose)
         if new_loans_found:
             loans_found.append(code)
