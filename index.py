@@ -20,43 +20,23 @@ if 'GATEWAY_INTERFACE' in os.environ:
     print "Content-Type: text/html;charset=utf-8"
 
     form = cgi.FieldStorage()
-
-    bool_args = ""
-    set_cookie = True
     arg_list = form.getlist("arguments")
 
-    if 'verbose' in arg_list:
-        verbose = True
-    else:
-        verbose = False
-    if 'display' in arg_list:
-        display = True
-    else:
-        display = False
-    if 'newonly' in arg_list:
-        newonly = True
-    else:
-        newonly = False
-    if 'private' in arg_list:
-        private = True
-        set_cookie = False
-    else:
-        private = False
-        set_cookie = True
-
-    if len(bool_args) > 0:
-        bool_args = '-' + bool_args
+    verbose = 'verbose' in arg_list
+    display = 'display' in arg_list
+    newonly = 'newonly' in arg_list
+    private = 'private' in arg_list
+    set_cookie = 'private' not in arg_list
 
     kiva_id = cgi.escape(form.getfirst('lender', 'empty')).strip('"\'')
-
     if kiva_id == 'empty':
             try:
                     cookie = Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])
                     kiva_id = cookie["lender"].value
             except:
                     print
-
     kiva_id = lender.check_lender_id(kiva_id)
+
     if set_cookie:
         print 'Set-Cookie: lender=' + kiva_id
     print
@@ -64,8 +44,8 @@ if 'GATEWAY_INTERFACE' in os.environ:
     loan_count = form.getfirst('count','1')
     if not loan_count.isdigit() and int(loan_count) <= 0:
         loan_count = '1'
-
     loan_count = int(loan_count)
+
     print '<p>Hello %s!</p>' % kiva_id
     print '''<p style="
         max-width: 100%;
@@ -102,13 +82,6 @@ else:
 # Done deciding if we're CGI or CLI
 #
 
-
-
-#p = sub.Popen(['./kcc.py',bool_args,'-i',kiva_id,'-c',loan_count],stdout=sub.PIPE)
-#output = urllib.unquote(p.stdout.read())
-##output = output.split('Visit Kiva at: ')
-
-
 my_countries, not_loaned = lender.read_lender_csv(kiva_id,private,verbose,display)
 loans_found = loan.find_new_loans(not_loaned,loan_count,verbose)
 
@@ -121,7 +94,7 @@ if len(loans_found) < loan_count:
     loans_found = loan.find_old_loans(loans_found,my_countries,loan_count,verbose)
 
 if verbose:
-    print "Not sure how we ended up here..."
+    print "Looks like we ran out of countries..."
 if len(loans_found) > 0:
     loan.display_link(loans_found)
 
