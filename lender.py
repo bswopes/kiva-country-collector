@@ -33,9 +33,9 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
         file = "lenders/" + lender + ".csv"
         my_countries = {}
         not_loaned = country_codes.copy()
+        loan_count = 0
         try: 
                 with open(file,'rb') as f:
-                        loan_count = 0
                         reader = csv.reader(f)
                         for row in reader:
                                 key, value = row
@@ -45,16 +45,17 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
                                         del not_loaned[key]
                         if __name__ == "__main__":
                                 print "Loading cached data from file: %s" % file
-
-                        if check_lender_count(lender) != loan_count:
-                                print "Lender has made new loans. Updating..."
-                                my_countries, not_loaned = fetch_old_loans(lender,private)
-            
-                        if verbose or display:
-                                display_lender_data(my_countries,not_loaned,display)
-                        return my_countries, not_loaned
         except IOError:
-                return False, False
+            if __name__ == "__main__":
+                print "Cached data not found."
+
+            if check_lender_count(lender) != loan_count:
+                print "Lender has made new loans. Updating..."
+                my_countries, not_loaned = fetch_old_loans(lender,private)
+            
+        if verbose or display:
+            display_lender_data(my_countries,not_loaned,display)
+        return my_countries, not_loaned
 
 
 def write_lender_csv(lender,my_countries):
