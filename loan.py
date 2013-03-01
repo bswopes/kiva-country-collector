@@ -5,6 +5,7 @@ import urllib
 from os import environ
 from sys import exit
 from country import country_codes
+import unittest
 
 app_id = "com.bhodisoft.kcc"
 
@@ -87,9 +88,13 @@ def find_old_loans(loans_found,my_countries,loan_count=1,verbose=False):
             display_link(loans_found)
     return loans_found
 
+class TestLoan(unittest.TestCase):
+    def testFindLoans(self):
+        loan_list = ["AF","AD","BD","SV","LB"]
+        result_find_loans = len(find_new_loans(loan_list,6))
+        self.assertGreater(result_find_loans,0,"Problem with find_new_loans.")
+
 if __name__ == "__main__":
-    verbose = True
-    loan_list = ["AF","AD","BD","SV","LB"]
-    print find_new_loans(loan_list)
+    unittest.main()
 
 

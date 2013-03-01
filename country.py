@@ -1,15 +1,19 @@
 #!/usr/bin/python
 
-import string
-import time
 import json
 import urllib
 import csv
+import unittest
 
 app_id = 'com.bhodisoft.kcc'
 country_list_filename = 'data/kiva-country-list.csv'
 
 def read_countries():
+    '''
+    (None) -> Dict
+    
+    Returns dict with the contents of file country_list_filename.
+    '''
     country_codes = {}
     
     with open(country_list_filename) as f:
@@ -50,14 +54,30 @@ def check_kiva_countries():
                 write_country_file = True
 
     if write_country_file:
-        with open(country_list_filename,'wb') as f:
-            writer = csv.writer(f,quoting=csv.QUOTE_ALL)
-            for key,value in sorted(country_codes.items()):
-                writer.writerow([key, value])
+        try:
+            with open(country_list_filename,'wb') as f:
+                writer = csv.writer(f,quoting=csv.QUOTE_ALL)
+                for key,value in sorted(country_codes.items()):
+                    writer.writerow([key, value])
+        except:
+            if __name__ == "__main__":
+                print "Unable to write new kiva country file."
 
     return country_codes
 
-country_codes = check_kiva_countries()
+class TestCountry(unittest.TestCase):
+    def testKivaCountries(self):
+        country_codes = check_kiva_countries()
+        self.assertGreater(len(country_codes), 1, "Problem loading country codes")
+        
+    def testNewCountry(self):
+        self.assertIsNot(new_kiva_country("SV"), False, "Problem with testing new countries.")
+        
+    def testFakeNewCountry(self):
+        self.assertFalse(new_kiva_country("ZZ"),False)
+
 
 if __name__ == "__main__":
-        print check_kiva_countries()
+    unittest.main()
+else:
+    country_codes = check_kiva_countries()

@@ -4,12 +4,8 @@
 # enable debugging
 import cgitb
 import cgi
-import subprocess as sub
-import urllib
 import os
 import Cookie
-import string
-import re
 from sys import exit
 from optparse import OptionParser
 import lender

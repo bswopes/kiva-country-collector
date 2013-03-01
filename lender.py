@@ -8,6 +8,7 @@ from sys import exit
 import string
 import re
 from country import country_codes
+import unittest
 
 app_id = "com.bhodisoft.kcc"
 
@@ -30,12 +31,12 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
 
         Returns list of country codes lent to and count. Returns False if file does not exist.
         '''
-        file = "lenders/" + lender + ".csv"
+        lender_file = "lenders/" + lender + ".csv"
         my_countries = {}
         not_loaned = country_codes.copy()
         loan_count = 0
         try: 
-                with open(file,'rb') as f:
+                with open(lender_file,'rb') as f:
                         reader = csv.reader(f)
                         for row in reader:
                                 key, value = row
@@ -44,7 +45,7 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
                                 if key in not_loaned:
                                         del not_loaned[key]
                         if __name__ == "__main__":
-                                print "Loading cached data from file: %s" % file
+                                print "Loading cached data from file: %s" % lender_file
         except IOError:
             if __name__ == "__main__":
                 print "Cached data not found."
@@ -63,7 +64,7 @@ def write_lender_csv(lender,my_countries):
 
         Writes country code and count to lender.csv. Returns success/failure.
         '''
-        file = "lenders/" + lender + ".csv"
+        lender_file = "lenders/" + lender + ".csv"
         if not path.exists("lenders"):
                 try:
                         mkdir("lenders",0700)
@@ -73,12 +74,12 @@ def write_lender_csv(lender,my_countries):
 
                 
         try: 
-                with open(file,'wb') as f:
+                with open(lender_file,'wb') as f:
                         writer = csv.writer(f,quoting=csv.QUOTE_NONNUMERIC)
                         for key,value in my_countries.items():
                                 writer.writerow([key, value])
                         f.close()
-                        print "Cached lender data to file: %s" % file
+                        print "Cached lender data to file: %s" % lender_file
                         return True
         except IOError:
                 print "Unable to write to lender file: %s.csv" % lender
@@ -130,8 +131,8 @@ def fetch_old_loans(lender,private=False):
                                 del not_loaned[code]
                 page += 1
 
-	if not private:
-        	write_lender_csv(lender,my_countries)
+        if not private:
+            write_lender_csv(lender,my_countries)
         return my_countries, not_loaned
 
 
@@ -145,12 +146,22 @@ def display_lender_data(my_countries,not_loaned,display=False):
             print '</p>'
         exit(0)
 
+class TestLender(unittest.TestCase):
+    def testLender(self):
+        check_lender_result = check_lender_id("bswopes")
+        self.assertEqual(check_lender_result,"bswopes","Problem with lender ID check for 'bswopes'")
+        
+    def testShortLender(self):
+        self.assertRaises(SystemExit,check_lender_id, "b")
+        
+    def testLenderStrip(self):
+        check_lender_result = check_lender_id("bsw%op$es!")
+        self.assertEqual(check_lender_result,"bswopes","Problem with lender ID check for 'bsw%op$es!'")
 
 if __name__ == "__main__":
-    lender = environ["USER"]
-    check_lender_id(lender)
+    unittest.main()
 
-    my_countries, not_loaned = fetch_old_loans(lender)
-    print my_countries
-    print not_loaned
+#    my_countries, not_loaned = fetch_old_loans(lender)
+#    print my_countries
+#    print not_loaned
 
