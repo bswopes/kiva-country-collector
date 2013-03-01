@@ -13,18 +13,14 @@ import unittest
 app_id = "com.bhodisoft.kcc"
 
 
-def check_lender_id(lender):
+def check_lender_id(lender_in):
     notallowed = "[^" + string.ascii_lowercase + string.digits + "]+"
-    lender = re.sub(notallowed,'', lender.lower())
+    lender = re.sub(notallowed,'', lender_in.lower())
     
-    if lender.isalnum() is False or len(lender) < 3 or len(lender) > 24:
-        print "Lender ID is invalid."
-        exit(1)
+    if lender != lender_in or lender.isalnum() is False or len(lender) < 3 or len(lender) > 24:
+        return False
     else:
-        if 'GATEWAY_INTERFACE' not in environ:
-            print "Lender ID %s" % lender
-    return lender
-
+        return True
 
 def read_lender_csv(lender,private=False,verbose=False,display=False):
         ''' (str) -> dict, dict
@@ -148,15 +144,13 @@ def display_lender_data(my_countries,not_loaned,display=False):
 
 class TestLender(unittest.TestCase):
     def testLender(self):
-        check_lender_result = check_lender_id("bswopes")
-        self.assertEqual(check_lender_result,"bswopes","Problem with lender ID check for 'bswopes'")
+        self.assertTrue(check_lender_id("bswopes"))
         
     def testShortLender(self):
-        self.assertRaises(SystemExit,check_lender_id, "b")
+        self.assertFalse(check_lender_id("b"))
         
-    def testLenderStrip(self):
-        check_lender_result = check_lender_id("bsw%op$es!")
-        self.assertEqual(check_lender_result,"bswopes","Problem with lender ID check for 'bsw%op$es!'")
+    def testLenderBad(self):
+        self.assertFalse(check_lender_id("bsw%op$es!"))
 
 if __name__ == "__main__":
     unittest.main()

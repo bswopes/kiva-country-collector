@@ -31,7 +31,10 @@ if 'GATEWAY_INTERFACE' in os.environ:
                     kiva_id = cookie["lender"].value
             except:
                     print
-    kiva_id = lender.check_lender_id(kiva_id)
+    if not lender.check_lender_id(kiva_id):
+        print
+        print "Lender ID is invalid."
+        exit(1)
 
     if set_cookie:
         print 'Set-Cookie: lender=' + kiva_id
@@ -67,11 +70,16 @@ else:
     
     if options.kiva_id is None:
         if 'GATEWAY_INTERFACE' not in os.environ:
-            kiva_id = lender.check_lender_id(os.environ["USER"])
+            kiva_id = os.environ["USER"]
         else:
             exit(3)
     else:
-        kiva_id = lender.check_lender_id(options.kiva_id)
+        kiva_id = options.kiva_id
+        
+    if not lender.check_lender_id(kiva_id):
+        print "Lender ID is invalid."
+        exit(1)
+    
 
 
 #
