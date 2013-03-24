@@ -1,3 +1,11 @@
 *.pyc
 .DS_Store
 lenders/
+
+.project
+
+.pydevproject
+
+*.prefs
+
+data/kiva-partner-list.csv

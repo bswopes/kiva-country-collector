@@ -46,9 +46,9 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
             if __name__ == "__main__":
                 print "Cached data not found."
 
-            if check_lender_count(lender) != loan_count:
-                print "Lender has made new loans. Updating..."
-                my_countries, not_loaned = fetch_old_loans(lender,private)
+        if check_lender_count(lender) != loan_count:
+            print "Lender has made new loans. Updating..."
+            my_countries, not_loaned = fetch_old_loans(lender,private)
             
         if verbose or display:
             display_lender_data(my_countries,not_loaned,display)
@@ -86,10 +86,11 @@ def check_lender_count(lender):
         lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id
         try:
                 d = json.loads(urllib.urlopen(lender_url).read())
+                total_loans = int(d["paging"]["total"])
         except:
                 print "Error loading lender page. Confirm your ID at http://www.kiva.org/myLenderId"
                 exit(1)
-        return int(d["paging"]["total"])
+        return total_loans
 
 
 def fetch_old_loans(lender,private=False):
