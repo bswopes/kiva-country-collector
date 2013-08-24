@@ -40,7 +40,7 @@ def find_loans(code,verbose=True):
         loans_found = True
     return loans_found
 
-def display_link(loans_found):
+def display_link(loans_found,rss=False):
     if isinstance(loans_found,list):
         co_list = "" 
         for code in loans_found:
@@ -49,7 +49,11 @@ def display_link(loans_found):
     else:
         co_list = loans_found
 
-    link = "http://www.kiva.org/lend#/?app_id=" + app_id + "&countries[]=" + co_list
+    if not rss:
+        link = "http://www.kiva.org/lend#/?app_id=" + app_id + "&countries[]=" + co_list
+    else:
+        link = "http://www.kiva.org/v1/loans/search.rss?app_id=" + app_id + "&status=fundraising&country_code=" + co_list
+
     if 'GATEWAY_INTERFACE' not in environ:
         print "Visit Kiva at: %s" % link
     else:

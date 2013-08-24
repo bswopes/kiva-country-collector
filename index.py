@@ -21,6 +21,7 @@ if 'GATEWAY_INTERFACE' in os.environ:
     verbose = 'verbose' in arg_list
     display = 'display' in arg_list
     newonly = 'newonly' in arg_list
+    rss = 'rss' in arg_list
     private = 'private' in arg_list
     set_cookie = 'private' not in arg_list
 
@@ -58,6 +59,7 @@ else:
     parser.add_option("-i","--id",dest="kiva_id",type=str,help="Kiva ID from http://www.kiva.org/myLenderId")
     parser.add_option("-c","--count",dest="count",type=int,help="Number of countries to find.",default=1)
     parser.add_option("-n","--new-only",dest="newonly",action="store_true",help="Only find new countries.",default=False)
+    parser.add_option("-r","--rss",dest="rss",action="store_true",help="Build RSS feed.",default=False)
     parser.add_option("-p","--private",dest="private",action="store_true",help="Do not write cache file!",default=False)
     parser.add_option("-v","--verbose",dest="verbose",action="store_true",help="Extra output",default=False)
     (options, args) = parser.parse_args()
@@ -65,6 +67,7 @@ else:
     verbose = options.verbose
     display = options.display
     newonly = options.newonly
+    rss = options.rss
     private = options.private
     loan_count = options.count
     
@@ -92,6 +95,11 @@ loans_found = loan.find_new_loans(not_loaned,loan_count,verbose)
 if newonly:
     print "Searched all new countries."
     exit(0)
+
+if rss:
+    import country
+    codes = country.get_codes(not_loaned)
+    loan.display_link(codes,rss)
 
 if len(loans_found) < loan_count:
     print "Found %s loans for new countries. Looking for less used countries." % len(loans_found)

@@ -65,6 +65,15 @@ def check_kiva_countries():
 
     return country_codes
 
+def get_codes(co_list):
+    codes = ""
+    for code,count in sorted(co_list.items(), key=lambda x: x[1]):
+        codes = codes + "," + code
+
+    return codes.lstrip(',')
+
+    
+
 class TestCountry(unittest.TestCase):
     def testKivaCountries(self):
         country_codes = check_kiva_countries()
