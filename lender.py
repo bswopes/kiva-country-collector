@@ -8,6 +8,7 @@ from sys import exit
 import string
 import re
 from country import country_codes
+import rate
 import unittest
 
 app_id = "com.bhodisoft.kcc"
@@ -83,12 +84,18 @@ def write_lender_csv(lender,my_countries):
         
 
 def check_lender_count(lender):
-        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id
+        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + ".json?app_id=" + app_id
         try:
-                d = json.loads(urllib.urlopen(lender_url).read())
-                total_loans = int(d["paging"]["total"])
+                f = urllib.urlopen(lender_url)
+                rate.get_rate(f)
+                d = json.loads(f.read())
+                total_loans = int(d["lenders"][0]["loan_count"])
         except:
-                print "Error loading lender page. Confirm your ID at http://www.kiva.org/myLenderId"
+                rate.get_rate(f, True)
+                if d["message"]:
+                    print d["message"]
+                else:
+                    print "Error loading lender page. Confirm your ID at http://www.kiva.org/myLenderId"
                 exit(1)
         return total_loans
 
@@ -110,10 +117,16 @@ def fetch_old_loans(lender,private=False):
         while page <= pages:
                 url = lender_url + str(page)
                 try:
-                        d = json.loads(urllib.urlopen(url).read())
+                        f = urllib.urlopen(url)
+                        rate.get_rate(f)
+                        d = json.loads(f.read())
                         pages = d["paging"]["pages"]
                 except:
-                        print "Error loading lender page. Confirm your ID at http://www.kiva.org/myLenderId"
+                        rate.get_rate(f, True)
+                        if d["message"]:
+                            print d["message"]
+                        else:
+                            print "Error loading lender page. Confirm your ID at http://www.kiva.org/myLenderId"
                         exit(1)
 
 
