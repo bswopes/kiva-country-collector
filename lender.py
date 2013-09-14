@@ -110,7 +110,7 @@ def fetch_old_loans(lender,private=False):
         '''
         page = 1 # Starting page number
         pages = 1 # Starting limit
-        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&page="
+        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&sort_by=oldest&page="
 
         my_countries = {}
         not_loaned = country_codes.copy()
@@ -118,7 +118,6 @@ def fetch_old_loans(lender,private=False):
                 url = lender_url + str(page)
                 try:
                         f = urllib.urlopen(url)
-                        rate.get_rate(f)
                         d = json.loads(f.read())
                         pages = d["paging"]["pages"]
                 except:
@@ -141,6 +140,15 @@ def fetch_old_loans(lender,private=False):
                                 del not_loaned[code]
                 page += 1
 
+
+                    
+                rate_remaining,rate_limit = rate.get_rate(f)
+                if rate_remaining <= rate_limit/10:
+                    print "Warning: Approaching API rate limit. Exiting."
+                    if not private:
+                        write_lender_csv(lender,my_countries)
+                    exit(1)
+                    
         if not private:
             write_lender_csv(lender,my_countries)
         return my_countries, not_loaned
