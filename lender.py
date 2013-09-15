@@ -37,8 +37,12 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
                         reader = csv.reader(f)
                         for row in reader:
                                 key, value = row
-                                loan_count += int(value)
-                                my_countries[str(key)] = int(value)
+                                value = string.strip(value,"[]")
+                                value = string.replace(value,' ','')
+                                value = string.split(value,',')
+                                loan_count += len(value)
+                                # print "key: %s, value: %s, count: %s" % (key,value,loan_count)
+                                my_countries[str(key)] = value
                                 if key in not_loaned:
                                         del not_loaned[key]
                         if __name__ == "__main__":
@@ -48,7 +52,7 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
                 print "Cached data not found."
 
         if check_lender_count(lender) != loan_count:
-            print "Lender has made new loans. Updating..."
+            print "Lender has made new loans (%s vs %s). Updating..." % (check_lender_count(lender),loan_count)
             my_countries, not_loaned = fetch_old_loans(lender,private)
             
         if verbose or display:
@@ -132,10 +136,12 @@ def fetch_old_loans(lender,private=False):
                 #print "Working on page %s of %s." % (page, pages)
                 for x in d["loans"]:
                         code = x["location"]["country_code"].encode('ascii','ignore')
+                        loan_id = int(x["id"])
                         if code not in my_countries:
-                                my_countries[code] = 1
+                                my_countries[code] = []
+                                my_countries[code].append(loan_id)
                         else:
-                                my_countries[code] += 1
+                                my_countries[code].append(loan_id)
                         if code in not_loaned:
                                 del not_loaned[code]
                 page += 1

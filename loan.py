@@ -87,13 +87,13 @@ def find_new_loans(not_loaned,loan_count=1,verbose=False):
     return loans_found
 
 def find_old_loans(loans_found,my_countries,loan_count=1,verbose=False):
-    for code,count in sorted(my_countries.items(), key=lambda x: x[1]):
+    for code,count in sorted(my_countries.items(), key=lambda x: len(x[1])):
 #        if verbose:
 #            print "Checking country %s, previous loan count %s." % (country_codes[code],count)
         new_loans_found = find_loans(code,verbose)
         if new_loans_found:
             loans_found.append(code)
-            print "Country %s, previous loan count %s." % (country_codes[code],count)
+            print "Country %s, previous loan count %s." % (country_codes[code],len(count))
         if len(loans_found) == loan_count:
             if verbose:
                 print "Reached specified number of countries."
