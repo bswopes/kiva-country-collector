@@ -51,9 +51,9 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
             if __name__ == "__main__":
                 print "Cached data not found."
 
-        if check_lender_count(lender) != loan_count:
+        if check_lender_count(lender,verbose) != loan_count:
             print "Lender has made new loans (%s vs %s). Updating..." % (check_lender_count(lender),loan_count)
-            my_countries, not_loaned = fetch_old_loans(lender,private)
+            my_countries, not_loaned = fetch_old_loans(lender,private,verbose)
             
         if verbose or display:
             display_lender_data(my_countries,not_loaned,display)
@@ -87,9 +87,11 @@ def write_lender_csv(lender,my_countries):
                 return False
         
 
-def check_lender_count(lender):
+def check_lender_count(lender,verbose=False):
         lender_url = "http://api.kivaws.org/v1/lenders/" + lender + ".json?app_id=" + app_id
         try:
+                if verbose:
+                    print "Getting lender loan count: %s" % lender_url
                 f = urllib.urlopen(lender_url)
                 rate.get_rate(f)
                 d = json.loads(f.read())
@@ -104,7 +106,7 @@ def check_lender_count(lender):
         return total_loans
 
 
-def fetch_old_loans(lender,private=False):
+def fetch_old_loans(lender,private=False,verbose=False):
         ''' (str) -> dict,dict
 
         Polls Kiva API for lender, gathering loan count per country.
@@ -121,6 +123,8 @@ def fetch_old_loans(lender,private=False):
         while page <= pages:
                 url = lender_url + str(page)
                 try:
+                        if verbose:
+                            print "Collecting previous loan data from: %s" % url
                         f = urllib.urlopen(url)
                         d = json.loads(f.read())
                         pages = d["paging"]["pages"]
