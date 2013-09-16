@@ -3,6 +3,7 @@
 import json 
 import urllib 
 import csv
+import math
 from os import mkdir, path, environ
 from sys import exit
 import string
@@ -10,9 +11,13 @@ import re
 from country import country_codes
 import rate
 import unittest
+import code
 
 app_id = "com.bhodisoft.kcc"
-
+my_countries = {}
+not_loaned = country_codes.copy()
+loan_count = 0
+total_loans = 0
 
 def check_lender_id(lender_in):
     notallowed = "[^" + string.ascii_lowercase + string.digits + "]+"
@@ -29,17 +34,21 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
         Returns list of country codes lent to and count. Returns False if file does not exist.
         '''
         lender_file = "lenders/" + lender + ".csv"
-        my_countries = {}
-        not_loaned = country_codes.copy()
-        loan_count = 0
+        global my_countries
+        global not_loaned
+        global loan_count
+
         try: 
                 with open(lender_file,'rb') as f:
                         reader = csv.reader(f)
                         for row in reader:
                                 key, value = row
-                                value = string.strip(value,"[]")
-                                value = string.replace(value,' ','')
+#                                value = string.strip(value,"[]\\'")
+#                                value = string.replace(value,' ','')
+                                notallowed = "[^" + string.digits + ",]+"
+                                value = re.sub(notallowed,'', value)
                                 value = string.split(value,',')
+                                value = list(set([int(i) for i in value]))
                                 loan_count += len(value)
                                 # print "key: %s, value: %s, count: %s" % (key,value,loan_count)
                                 my_countries[str(key)] = value
@@ -89,6 +98,7 @@ def write_lender_csv(lender,my_countries):
 
 def check_lender_count(lender,verbose=False):
         lender_url = "http://api.kivaws.org/v1/lenders/" + lender + ".json?app_id=" + app_id
+        global total_loans
         try:
                 if verbose:
                     print "Getting lender loan count: %s" % lender_url
@@ -107,27 +117,31 @@ def check_lender_count(lender,verbose=False):
 
 
 def fetch_old_loans(lender,private=False,verbose=False):
-        ''' (str) -> dict,dict
+        ''' (str,bool,bool) -> dict,dict
 
         Polls Kiva API for lender, gathering loan count per country.
 
         Returns dict of country codes lent to and count. Returns dict of country codes and countries not lent to.
 
         '''
-        page = 1 # Starting page number
-        pages = 1 # Starting limit
+        global my_countries
+        global not_loaned
+        global total_loans
+        global loan_count
+#        pages = math.ceil(total_loans/20) # Starting limit
+        page = math.ceil(total_loans/20) # Starting page number
+        if total_loans % 20 >0:
+            page += 1 # Rounding up page number
         lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&sort_by=oldest&page="
 
-        my_countries = {}
-        not_loaned = country_codes.copy()
-        while page <= pages:
+        while page > 0 and loan_count != total_loans:
                 url = lender_url + str(page)
                 try:
                         if verbose:
-                            print "Collecting previous loan data from: %s" % url
+                            print "Collecting previous loan data from page: %s" % page
                         f = urllib.urlopen(url)
                         d = json.loads(f.read())
-                        pages = d["paging"]["pages"]
+                        #pages = d["paging"]["pages"]
                 except:
                         rate.get_rate(f, True)
                         if d["message"]:
@@ -137,20 +151,32 @@ def fetch_old_loans(lender,private=False,verbose=False):
                         exit(1)
 
 
-                #print "Working on page %s of %s." % (page, pages)
+#                print "Working on page %s of %s." % (page, pages)
                 for x in d["loans"]:
                         code = x["location"]["country_code"].encode('ascii','ignore')
                         loan_id = int(x["id"])
                         if code not in my_countries:
-                                my_countries[code] = []
-                                my_countries[code].append(loan_id)
-                        else:
-                                my_countries[code].append(loan_id)
+                            if verbose:
+                                print "Adding country: %s" % code
+                            my_countries[code] = []
+                            my_countries[code].append(loan_id)
+                        elif loan_id not in my_countries[code]:
+#                            if verbose:
+#                                print "Adding loan id: %s" % loan_id
+                            my_countries[code].append(loan_id)
+#                        else:
+#                            if verbose:
+#                                print "Already tracking: %s,%s" % (code,loan_id)
+                            
                         if code in not_loaned:
-                                del not_loaned[code]
-                page += 1
+                            del not_loaned[code]
+                page -= 1
 
-
+                counter = 0
+                for code in my_countries:
+                    counter += len(my_countries[code])
+#                    print "Counter: %s - %s" % (counter,my_countries[code])
+                loan_count = counter
                     
                 rate_remaining,rate_limit = rate.get_rate(f)
                 if rate_remaining <= rate_limit/10:
@@ -161,6 +187,9 @@ def fetch_old_loans(lender,private=False,verbose=False):
                     
         if not private:
             write_lender_csv(lender,my_countries)
+        if verbose:
+            if loan_count != total_loans:
+                print "Loan counts don't match! %s vs %s" % (loan_count,total_loans)
         return my_countries, not_loaned
 
 
