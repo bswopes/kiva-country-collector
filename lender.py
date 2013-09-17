@@ -3,7 +3,6 @@
 import json 
 import urllib 
 import csv
-import math
 from os import mkdir, path, environ
 from sys import exit
 import string
@@ -128,20 +127,18 @@ def fetch_old_loans(lender,private=False,verbose=False):
         global not_loaned
         global total_loans
         global loan_count
-#        pages = math.ceil(total_loans/20) # Starting limit
-        page = math.ceil(total_loans/20) # Starting page number
-        if total_loans % 20 >0:
-            page += 1 # Rounding up page number
-        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&sort_by=oldest&page="
+        page = (loan_count//20) + 1 # Starting page number
+        pages = page # Starting limit
+        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&sort_by=newest&page="
 
-        while page > 0 and loan_count != total_loans:
+        while page <= pages and loan_count != total_loans:
                 url = lender_url + str(page)
                 try:
                         if verbose:
                             print "Collecting previous loan data from page: %s" % page
                         f = urllib.urlopen(url)
                         d = json.loads(f.read())
-                        #pages = d["paging"]["pages"]
+                        pages = d["paging"]["pages"]
                 except:
                         rate.get_rate(f, True)
                         if d["message"]:
@@ -170,7 +167,7 @@ def fetch_old_loans(lender,private=False,verbose=False):
                             
                         if code in not_loaned:
                             del not_loaned[code]
-                page -= 1
+                page += 1
 
                 counter = 0
                 for code in my_countries:
