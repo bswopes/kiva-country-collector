@@ -142,7 +142,9 @@ def fetch_old_loans(lender,private=False,verbose=False):
         global not_loaned
         global total_loans
         global loan_count
-        page = (loan_count//20) + 1 # Starting page number
+        page = (loan_count//20) # Starting page number
+        if page == 0:
+            page = 1
         pages = page # Starting limit
         lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&sort_by=newest&page="
 
