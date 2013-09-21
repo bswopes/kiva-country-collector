@@ -89,7 +89,7 @@ else:
 # Done deciding if we're CGI or CLI
 #
 
-my_countries, not_loaned = lender.read_lender_csv(kiva_id,private,verbose,display)
+my_countries, not_loaned = lender.read_lender_file(kiva_id,private,verbose,display)
 loans_found = loan.find_new_loans(not_loaned,loan_count,verbose)
 
 if newonly:

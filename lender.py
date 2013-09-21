@@ -2,7 +2,7 @@
 
 import json 
 import urllib 
-import csv
+#from pprint import pprint
 from os import mkdir, path, environ
 from sys import exit
 import string
@@ -27,32 +27,42 @@ def check_lender_id(lender_in):
     else:
         return True
 
-def read_lender_csv(lender,private=False,verbose=False,display=False):
+def read_lender_file(lender,private=False,verbose=False,display=False):
         ''' (str) -> dict, dict
 
         Returns list of country codes lent to and count. Returns False if file does not exist.
         '''
-        lender_file = "lenders/" + lender + ".csv"
+        lender_file = "lenders/" + lender + ".json"
         global my_countries
         global not_loaned
         global loan_count
 
         try: 
                 with open(lender_file,'rb') as f:
-                        reader = csv.reader(f)
-                        for row in reader:
-                                key, value = row
-#                                value = string.strip(value,"[]\\'")
-#                                value = string.replace(value,' ','')
-                                notallowed = "[^" + string.digits + ",]+"
-                                value = re.sub(notallowed,'', value)
-                                value = string.split(value,',')
-                                value = list(set([int(i) for i in value]))
-                                loan_count += len(value)
-                                # print "key: %s, value: %s, count: %s" % (key,value,loan_count)
-                                my_countries[str(key)] = value
-                                if key in not_loaned:
-                                        del not_loaned[key]
+#                        reader = csv.reader(f)
+#                        for row in reader:
+#                                key, value = row
+##                                value = string.strip(value,"[]\\'")
+##                                value = string.replace(value,' ','')
+#                                notallowed = "[^" + string.digits + ",]+"
+#                                value = re.sub(notallowed,'', value)
+#                                value = string.split(value,',')
+#                                value = list(set([int(i) for i in value]))
+#                                loan_count += len(value)
+#                                # print "key: %s, value: %s, count: %s" % (key,value,loan_count)
+#                                my_countries[str(key)] = value
+#                                if key in not_loaned:
+#                                        del not_loaned[key]
+
+                        data = json.load(f)
+#                        pprint(data)
+                        my_countries = data["my_countries"]
+                        loan_count = data["loan_count"]
+
+                        for code in my_countries:
+                            if code in not_loaned:
+                                del not_loaned[code]
+                                
                         if __name__ == "__main__":
                                 print "Loading cached data from file: %s" % lender_file
         except IOError:
@@ -68,12 +78,19 @@ def read_lender_csv(lender,private=False,verbose=False,display=False):
         return my_countries, not_loaned
 
 
-def write_lender_csv(lender,my_countries):
-        ''' (str,dict) -> bool
+def write_lender_file(lender):
+        ''' (str) -> bool
 
         Writes country code and count to lender.csv. Returns success/failure.
         '''
-        lender_file = "lenders/" + lender + ".csv"
+        global my_countries
+        global loan_count
+        lender_file = "lenders/" + lender
+
+        data = {}
+        data["loan_count"] = loan_count
+        data["my_countries"] = my_countries        
+        
         if not path.exists("lenders"):
                 try:
                         mkdir("lenders",0700)
@@ -83,10 +100,8 @@ def write_lender_csv(lender,my_countries):
 
                 
         try: 
-                with open(lender_file,'wb') as f:
-                        writer = csv.writer(f,quoting=csv.QUOTE_NONNUMERIC)
-                        for key,value in my_countries.items():
-                                writer.writerow([key, value])
+                with open(lender_file + ".json",'wb') as f:
+                        json.dump(data,f)
                         f.close()
                         print "Cached lender data to file: %s" % lender_file
                         return True
@@ -179,11 +194,11 @@ def fetch_old_loans(lender,private=False,verbose=False):
                 if rate_remaining <= rate_limit/10:
                     print "Warning: Approaching API rate limit. Exiting."
                     if not private:
-                        write_lender_csv(lender,my_countries)
+                        write_lender_file(lender)
                     exit(1)
                     
         if not private:
-            write_lender_csv(lender,my_countries)
+            write_lender_file(lender)
         if verbose:
             if loan_count != total_loans:
                 print "Loan counts don't match! %s vs %s" % (loan_count,total_loans)
