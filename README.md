@@ -21,3 +21,5 @@ to prevent it redirecting back to my domain.
 > if(top === self){  
 >   top.location.href = 'http://www.bhodisoft.com/kiva-country-collector/';  
 > }  
+
+kcc.py and gen-country-codes.py are no longer used, but retained here for historical purposes.
