@@ -2,6 +2,12 @@ limit = 60
 remaining = 60
 
 def get_rate(f,verbose=False):
+    ''' (httpmesg,[bool]) > int,int
+    
+    Passed http url opened by urllib. 
+    
+    Returns rate limit information from http headers.
+    '''
     
     furlinfo = f.info()
 

@@ -14,9 +14,9 @@ app_id = "com.bhodisoft.kcc"
 def find_loans(code,verbose=True):
     ''' (str) -> bool
         
-        Return True if at least one new country is found.
+    Return True if at least one new country is found.
         
-        '''
+    '''
     search_url = "http://api.kivaws.org/v1/loans/search.json?app_id=" + app_id + "&status=fundraising&country_code="
     loans_found = False
     loans = -1
@@ -49,6 +49,11 @@ def find_loans(code,verbose=True):
     return loans_found
 
 def display_link(loans_found,rss=False):
+    ''' (dict,[bool]) -> exits
+    
+    Displays link to search for found loans, or rss feed for remaining countries.
+    Formats based on if called from command line or cgi.
+    '''
     if isinstance(loans_found,list):
         co_list = "" 
         for code in loans_found:
@@ -70,6 +75,14 @@ def display_link(loans_found,rss=False):
     exit(0)
 
 def find_new_loans(not_loaned,loan_count=1,verbose=False):
+    ''' (dict,[int],[bool]) -> dict
+    
+    For all countries in not_loaned, call find_loans to search for available loans.
+    
+    If target loan count is reached, display links and exit.
+    
+    Returns dict.
+    '''
     loans_found = []
     new_list = ','.join(sorted(not_loaned))
     if find_loans(new_list,verbose):
@@ -87,9 +100,15 @@ def find_new_loans(not_loaned,loan_count=1,verbose=False):
     return loans_found
 
 def find_old_loans(loans_found,my_countries,loan_count=1,verbose=False):
+    ''' (dict,dict,[int],[bool]) -> dict
+    
+    Search through previously loaned countries by least number of loans for available loans.
+    
+    If target loan count is reached, display links and exit.
+    
+    Returns dict.
+    '''
     for code,count in sorted(my_countries.items(), key=lambda x: len(x[1])):
-#        if verbose:
-#            print "Checking country %s, previous loan count %s." % (country_codes[code],count)
         new_loans_found = find_loans(code,verbose)
         if new_loans_found:
             loans_found.append(code)

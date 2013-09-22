@@ -2,7 +2,6 @@
 
 import json 
 import urllib 
-#from pprint import pprint
 from os import mkdir, path, environ
 from sys import exit
 import string
@@ -19,6 +18,9 @@ loan_count = 0
 total_loans = 0
 
 def check_lender_id(lender_in):
+    ''' (str) -> bool
+    Return true if lender_id submitted is 3-24 characters and all letters/numbers.
+    '''
     notallowed = "[^" + string.ascii_lowercase + string.digits + "]+"
     lender = re.sub(notallowed,'', lender_in.lower())
     
@@ -28,8 +30,10 @@ def check_lender_id(lender_in):
         return True
 
 def read_lender_file(lender,private=False,verbose=False,display=False):
-        ''' (str) -> dict, dict
+        ''' (str,[bool],[bool],[bool]) -> dict, dict
 
+        Reads json data from lender file.
+        
         Returns list of country codes lent to and count. Returns False if file does not exist.
         '''
         lender_file = "lenders/" + lender + ".json"
@@ -39,23 +43,7 @@ def read_lender_file(lender,private=False,verbose=False,display=False):
 
         try: 
                 with open(lender_file,'rb') as f:
-#                        reader = csv.reader(f)
-#                        for row in reader:
-#                                key, value = row
-##                                value = string.strip(value,"[]\\'")
-##                                value = string.replace(value,' ','')
-#                                notallowed = "[^" + string.digits + ",]+"
-#                                value = re.sub(notallowed,'', value)
-#                                value = string.split(value,',')
-#                                value = list(set([int(i) for i in value]))
-#                                loan_count += len(value)
-#                                # print "key: %s, value: %s, count: %s" % (key,value,loan_count)
-#                                my_countries[str(key)] = value
-#                                if key in not_loaned:
-#                                        del not_loaned[key]
-
                         data = json.load(f)
-#                        pprint(data)
                         my_countries = data["my_countries"]
                         loan_count = data["loan_count"]
 
@@ -81,11 +69,13 @@ def read_lender_file(lender,private=False,verbose=False,display=False):
 def write_lender_file(lender):
         ''' (str) -> bool
 
-        Writes country code and count to lender.csv. Returns success/failure.
+        Writes json data to lender file. 
+        
+        Returns success/failure.
         '''
         global my_countries
         global loan_count
-        lender_file = "lenders/" + lender
+        lender_file = "lenders/" + lender + ".json"
 
         data = {}
         data["loan_count"] = loan_count
@@ -100,7 +90,7 @@ def write_lender_file(lender):
 
                 
         try: 
-                with open(lender_file + ".json",'wb') as f:
+                with open(lender_file,'wb') as f:
                         json.dump(data,f)
                         f.close()
                         print "Cached lender data to file: %s" % lender_file
@@ -111,6 +101,10 @@ def write_lender_file(lender):
         
 
 def check_lender_count(lender,verbose=False):
+        ''' (str,[bool]) -> int
+        
+        Returns total loan count for passed lender id.
+        '''
         lender_url = "http://api.kivaws.org/v1/lenders/" + lender + ".json?app_id=" + app_id
         global total_loans
         try:
@@ -131,7 +125,7 @@ def check_lender_count(lender,verbose=False):
 
 
 def fetch_old_loans(lender,private=False,verbose=False):
-        ''' (str,bool,bool) -> dict,dict
+        ''' (str,[bool],[bool]) -> dict,dict
 
         Polls Kiva API for lender, gathering loan count per country.
 
@@ -144,8 +138,8 @@ def fetch_old_loans(lender,private=False,verbose=False):
         global loan_count
         page = (loan_count//20) # Starting page number
         if page == 0:
-            page = 1
-        pages = page # Starting limit
+            page = 1 # There is no page 0.
+        pages = page # Starting limit, this will update after the first call.
         lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&sort_by=newest&page="
 
         while page <= pages and loan_count != total_loans:
@@ -165,7 +159,6 @@ def fetch_old_loans(lender,private=False,verbose=False):
                         exit(1)
 
 
-#                print "Working on page %s of %s." % (page, pages)
                 for x in d["loans"]:
                         code = x["location"]["country_code"].encode('ascii','ignore')
                         loan_id = int(x["id"])
@@ -175,23 +168,19 @@ def fetch_old_loans(lender,private=False,verbose=False):
                             my_countries[code] = []
                             my_countries[code].append(loan_id)
                         elif loan_id not in my_countries[code]:
-#                            if verbose:
-#                                print "Adding loan id: %s" % loan_id
                             my_countries[code].append(loan_id)
-#                        else:
-#                            if verbose:
-#                                print "Already tracking: %s,%s" % (code,loan_id)
                             
                         if code in not_loaned:
                             del not_loaned[code]
                 page += 1
 
+                # Keep track of current loan count so we know when to stop calling the api.
                 counter = 0
                 for code in my_countries:
                     counter += len(my_countries[code])
-#                    print "Counter: %s - %s" % (counter,my_countries[code])
                 loan_count = counter
                     
+                # Leave some breathing room on the api rate limit.
                 rate_remaining,rate_limit = rate.get_rate(f)
                 if rate_remaining <= rate_limit/10:
                     print "Warning: Approaching API rate limit. Exiting."
@@ -208,6 +197,10 @@ def fetch_old_loans(lender,private=False,verbose=False):
 
 
 def display_lender_data(my_countries,not_loaned,display=False):
+    ''' (dict,dict,[bool]) -> exits
+    
+    Prints out data about lender's loans and exit.
+    '''
     print "User has previously loaned to:", ', '.join(sorted(my_countries))
     print "User has not loaned to:", ', '.join(sorted(not_loaned))
     print "Remaining countries:", len(not_loaned)
@@ -229,8 +222,4 @@ class TestLender(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-#    my_countries, not_loaned = fetch_old_loans(lender)
-#    print my_countries
-#    print not_loaned
 
