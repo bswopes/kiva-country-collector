@@ -140,7 +140,8 @@ def fetch_old_loans(lender,private=False,verbose=False):
         if page == 0:
             page = 1 # There is no page 0.
         pages = page # Starting limit, this will update after the first call.
-        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&sort_by=newest&page="
+        # Since we're starting part way through the list, the newest loans should always be at the end...
+        lender_url = "http://api.kivaws.org/v1/lenders/" + lender + "/loans.json?app_id=" + app_id + "&sort_by=oldest&page="
 
         while page <= pages and loan_count != total_loans:
                 url = lender_url + str(page)
@@ -168,7 +169,12 @@ def fetch_old_loans(lender,private=False,verbose=False):
                             my_countries[code] = []
                             my_countries[code].append(loan_id)
                         elif loan_id not in my_countries[code]:
+                            if verbose:
+                                print "Adding loan_id: %s" % loan_id
                             my_countries[code].append(loan_id)
+                        else:
+                            if verbose:
+                                print "Loan already tracked: %s" % loan_id                            
                             
                         if code in not_loaned:
                             del not_loaned[code]
@@ -192,7 +198,7 @@ def fetch_old_loans(lender,private=False,verbose=False):
             write_lender_file(lender)
         if verbose:
             if loan_count != total_loans:
-                print "Loan counts don't match! %s vs %s" % (loan_count,total_loans)
+                print "Error loading old loans! Loan counts don't match! %s vs %s" % (total_loans,loan_count)
         return my_countries, not_loaned
 
 
