@@ -9,8 +9,7 @@ app_id = 'com.bhodisoft.kcc'
 country_list_filename = 'data/kiva-country-list.csv'
 
 def read_countries():
-    '''
-    (None) -> Dict
+    ''' (None) -> Dict
     
     Returns dict with the contents of file country_list_filename.
     '''
@@ -24,6 +23,10 @@ def read_countries():
     return country_codes
 
 def new_kiva_country(code):
+    ''' (str) -> str
+    
+    Returns country name for country code.
+    '''
     url = "http://api.kivaws.org/v1/loans/search.json?app_id=" + app_id + "&country_code=" + code
     d = json.loads(urllib.urlopen(url).read())
     if len(d["loans"]) > 0:
@@ -32,6 +35,13 @@ def new_kiva_country(code):
         return False
 
 def check_kiva_countries():
+    ''' (None) -> dict
+    
+    Get current list of all countries KIVA has worked with.
+    If new country added to the list, call new_kiva_country and update country file.
+    
+    Returns list of country codes.
+    '''
     write_country_file = False
     methodurl='http://api.kivaws.org/v1/methods/GET*%7Cloans%7Csearch.json?app_id=' + app_id
     country_codes = read_countries()
@@ -66,6 +76,10 @@ def check_kiva_countries():
     return country_codes
 
 def get_codes(co_list):
+    ''' (dict) -> list
+    
+    Returns sorted list of country codes.
+    '''
     codes = ""
     for code,count in sorted(co_list.items(), key=lambda x: x[1]):
         codes = codes + "," + code
