@@ -6,6 +6,7 @@ import cgitb
 import cgi
 import os
 import Cookie
+import datetime
 from sys import exit
 from optparse import OptionParser
 import lender
@@ -38,7 +39,8 @@ if 'GATEWAY_INTERFACE' in os.environ:
         exit(1)
 
     if set_cookie:
-        print 'Set-Cookie: lender=' + kiva_id
+        expiration = datetime.datetime.now() + datetime.timedelta(days=60)
+        print 'Set-Cookie: lender=' + kiva_id + "; expires=" + expiration.strftime("%a, %d-%b-%Y %H:%M:%S PST")
     print
 
     loan_count = form.getfirst('count','1')
