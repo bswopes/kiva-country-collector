@@ -15,11 +15,15 @@ def read_countries():
     '''
     country_codes = {}
     
-    with open(country_list_filename) as f:
-        reader = csv.reader(f)
-        for row in reader:
-            k, v = row
-            country_codes[k] = v
+    try:
+        with open(country_list_filename) as f:
+            reader = csv.reader(f)
+            for row in reader:
+                k, v = row
+                country_codes[k] = v
+    except:
+        if __name__ == "__main__":
+            print "Unable to read kiva country file."
     return country_codes
 
 def new_kiva_country(code):
@@ -27,10 +31,10 @@ def new_kiva_country(code):
     
     Returns country name for country code.
     '''
-    url = "http://api.kivaws.org/v1/loans/search.json?app_id=" + app_id + "&country_code=" + code
-    d = json.loads(urllib.urlopen(url).read())
-    if len(d["loans"]) > 0:
-        return str(d["loans"][0]["location"]["country"])
+    methodurl = 'http://api.kivaws.org/v1/methods/GET*%7Cloans%7Csearch.json?app_id=' + app_id
+    d = json.loads(urllib.urlopen(methodurl).read())
+    if code in d['methods'][0]['arguments'][3]['labels']['en']:
+        return d['methods'][0]['arguments'][3]['labels']['en'][code]
     else:
         return False
 
@@ -69,6 +73,7 @@ def check_kiva_countries():
                 writer = csv.writer(f,quoting=csv.QUOTE_ALL)
                 for key,value in sorted(country_codes.items()):
                     writer.writerow([key, value])
+                    #print "Writing:" + key + "," + value
         except:
             if __name__ == "__main__":
                 print "Unable to write new kiva country file."
