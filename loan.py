@@ -63,7 +63,7 @@ def display_link(loans_found,rss=False):
         co_list = loans_found
 
     if not rss:
-        link = "http://www.kiva.org/lend#/?app_id=" + app_id + "&countries[]=" + co_list
+        link = "http://www.kiva.org/lend#/?app_id=" + app_id + "&country=" + co_list
     else:
         link = "http://api.kivaws.org/v1/loans/search.rss?app_id=" + app_id + "&status=fundraising&country_code=" + co_list
 
